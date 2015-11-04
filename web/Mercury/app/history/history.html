@@ -1,0 +1,66 @@
+<div class="container">
+    <div class="page-header">
+        <h1>Rose-Hulman Mercury Robotics</h1>
+
+        <h4>Welcome to our Mercury Challenge Website</h4>
+        <h4>Signed in as <b>{{username}}</b></h4>
+    </div>
+    <h2>Command History</h2>
+
+
+    <h3>Motors</h3>
+    <table class="table table-bordered">
+        <tr>
+            <td>
+                <table class="table-striped">
+                    <thead>
+                    <tr>
+                        <th>Left PWM</th>
+                        <th>Right PWM</th>
+                        <th>Timestamp</th>
+                    </tr>
+                    </thead>
+                    <tr ng-repeat="command in latestMotorCommands">
+                        <td>{{command.leftMotors}}</td>
+                        <td>{{command.rightMotors}}</td>
+                        <td>{{command.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <p class="lead">Gripper/Launcher</p>
+                <table class="table-striped">
+                    <thead>
+                    <tr>
+                        <th>Angle</th>
+                        <th>Position</th>
+                        <th>Timestamp</th>
+                    </tr>
+                    </thead>
+                    <tr ng-repeat="command in latestGripperCommands">
+                        <td>{{command.angle}}</td>
+                        <td>{{command.position}}</td>
+                        <td>{{command.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <p class="lead">LEDs</p>
+                <table class="table-striped">
+                    <thead>
+                    <tr>
+                        <th>Led Number</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                    </thead>
+                    <tr ng-repeat="command in latestLedCommands">
+                        <td>{{command.ledNumber}}</td>
+                        <td>{{command.status}}</td>
+                        <td>{{command.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>

@@ -1,0 +1,188 @@
+<div class="container">
+    <div class="page-header">
+        <h1>Rose-Hulman Mercury Robotics</h1>
+
+        <h4>Welcome to our Mercury Challenge Website</h4>
+        <h4>Signed in as <b>{{username}}</b></h4>
+    </div>
+
+    <h2>Command Center</h2>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th class="text-center"><h2>Motors</h2></th>
+            <th class="text-center"><h2>Gripper/Launcher</h2></th>
+            <th class="text-center"><h2>LEDs</h2></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="text-center">
+            <td>
+                <form class="form-inline" name="motorCommandForm">
+                    <div class="form-group"
+                         ng-class="{ 'has-error' : motorCommandForm.leftPwm.$invalid || motorCommandForm.rightPwm.$invalid }">
+                        <label>Left PWM
+                            <input type="number" value="125" min="0" max="255" step="5" name="leftPwm"
+                                   ng-model="leftPwm" class="form-control" required="" autofocus="">
+                        </label>
+
+                        <label>Right PWM
+                            <input type="number" value="125" min="0" max="255" step="5" name="rightPwm"
+                                   ng-model="rightPwm" class="form-control" required="" autofocus="">
+                        </label>
+
+                        <!--<p class="help-block" ng-show="motorCommandForm.leftPwm.$invalid">-->
+                        <!--Left PWM must be an integer between 0 and 255-->
+                        <!--</p>-->
+
+                        <!--<p class="help-block" ng-show="motorCommandForm.rightPwm.$invalid">-->
+                        <!--Right PWM must be an integer between 0 and 255-->
+                        <!--</p>-->
+                    </div>
+                </form>
+            </td>
+            <td>
+                <form class="form-inline" name="gripperCommandForm">
+                    <div class="form-group" ng-class="{ 'has-error' : gripperCommandForm.angle.$invalid}">
+                        <label>Angle
+                            <input type="number" min="0" max="180" step="10" value="90" name="angle"
+                                   ng-model="angle" class="form-control" required="" autofocus="">
+                        </label>
+
+                        <!--<p class="help-block" ng-show="gripperCommandForm.angle.$invalid">-->
+                        <!--Angle must be an integer between 0 and 360-->
+                        <!--</p>-->
+                    </div>
+                </form>
+            </td>
+            <td>
+                <form class="form-inline" name="ledCommandForm">
+                    <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.ledNumber.$invalid}">
+                        <!-- TODO: how many LEDs? -->
+                        <label>LedNumber
+                            <input type="number" min="1" max="6" step="1" value="3" name="ledNumber"
+                                   ng-model="ledNumber" class="form-control" required="" autofocus="">
+                        </label>
+
+                        <!--<p class="help-block" ng-show="ledCommandForm.ledNumber.$invalid">-->
+                        <!--LED number must be an integer between 1 and 3-->
+                        <!--</p>-->
+                    </div>
+                    <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.status.$invalid}">
+                        <label>LED Status</label>
+
+                        <div class="btn-group" data-toggle="buttons">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="status" ng-model="status" value="on">ON
+                                </label>
+                            </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="status" ng-model="status" value="off">OFF
+                                </label>
+                            </div>
+                        </div>
+                        <!--<p class="help-block" ng-show="ledCommandForm.status.$invalid">-->
+                        <!--LED status must be selected-->
+                        <!--</p>-->
+                    </div>
+                </form>
+            </td>
+        </tr>
+        <tr class="text-center">
+            <td>
+                <button class="btn btn-lg button-primary btn-block" type="submit"
+                        ng-click="sendMotorCommand(leftPwm, rightPwm)" ng-disabled="!leftPwm || !rightPwm">
+                    Send Motor Command
+                </button>
+                <button class="btn btn-primary btn-danger btn-lg btn-block" type="submit" ng-click="sendStopCommand()">
+                    STOP
+                </button>
+            </td>
+            <td>
+                <button class="btn button-primary btn-lg btn-block" type="submit"
+                        ng-click="sendGripperAngleCommand(angle)" ng-disabled="!angle">
+                    Send Angle Command
+                </button>
+                <button class="btn btn-primary btn-lg btn-block" type="submit" ng-click="sendGripperCloseCommand()">
+                    CLOSE
+                </button>
+                <button class="btn btn-primary btn-lg btn-block" type="submit" ng-click="sendGripperOpenCommand()">
+                    OPEN
+                </button>
+            </td>
+            <td>
+                <button class="btn button-primary btn-lg btn-block" type="submit"
+                        ng-click="sendLedCommand(ledNumber, status)" ng-disabled="!ledNumber">
+                    Send LED Command
+                </button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <h2>Latest Commands</h2>
+    <table class="table table-bordered">
+        <thead>
+        <tr class="text-center">
+            <th class="text-center"><h2>Motors</h2></th>
+            <th class="text-center"><h2>Gripper/Launcher</h2></th>
+            <th class="text-center"><h2>LEDs</h2></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="text-center">
+            <td>
+                <table class="table-striped">
+                    <tr ng-repeat="cmd in latestMotorCommands">
+                        <th>Left PWM</th>
+                        <td>{{cmd.leftMotors}}</td>
+                    </tr>
+                    <tr ng-repeat="cmd in latestMotorCommands">
+                        <th>Right PWM</th>
+                        <td>{{cmd.rightMotors}}</td>
+                    </tr>
+                    <tr ng-repeat="cmd in latestMotorCommands">
+                        <th>Timestamp</th>
+                        <td>{{cmd.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <table class="table-striped">
+                    <tr ng-repeat="cmd in latestGripperCommands">
+                        <th>Angle</th>
+                        <td>{{cmd.angle}}</td>
+                    </tr>
+                    <tr ng-repeat="cmd in latestGripperCommands">
+                        <th>Position</th>
+                        <td>{{cmd.position}}</td>
+                    </tr>
+                    <tr ng-repeat="cmd in latestGripperCommands">
+                        <th>Timestamp</th>
+                        <td>{{cmd.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <table class="table-striped">
+                    <tr ng-repeat="cmd in latestLedCommands">
+                        <th>LED Number</th>
+                        <td>{{cmd.ledNumber}}</td>
+                    </tr>
+                    <tr ng-repeat="cmd in latestLedCommands">
+                        <th>Status</th>
+                        <td>{{cmd.status}}</td>
+                    </tr>
+                    <tr ng-repeat="cmd in latestLedCommands">
+                        <th>Timestamp</th>
+                        <td>{{cmd.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
