@@ -37,23 +37,4 @@ angular.module('Mercury.login', [
                 });
 
             }
-        }])
-    .service('CommonProp', ["$location", "$firebaseAuth", function ($location, $firebaseAuth) {
-        var user = "";
-        var firebase = new Firebase("https://mercury-robotics-16.firebaseio.com");
-        var authObj = $firebaseAuth(firebase);
-
-        return {
-            getUser: function () {
-                return user;
-            },
-            setUser: function (value) {
-                user = value;
-            },
-            logoutUser: function () {
-                authObj.$unauth();
-                console.log("Logout complete");
-                $location.path("/login");
-            }
-        }
-    }]);
+        }]);

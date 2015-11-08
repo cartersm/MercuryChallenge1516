@@ -20,10 +20,6 @@ angular.module('Mercury.home', [
             }
             $scope.username = CommonProp.getUser();
 
-            $scope.logout = function () {
-                CommonProp.logoutUser();
-            };
-
             var motorQuery = firebase.child("motorCommands")
                 .orderByChild("timestamp")
                 .limitToLast(1);
