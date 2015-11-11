@@ -12,7 +12,7 @@ angular.module('Mercury.home', [
         function ($scope, $firebaseAuth, $firebaseArray, $location, CommonProp) {
             var firebase = new Firebase("https://mercury-robotics-16.firebaseio.com");
             var authObj = $firebaseAuth(firebase);
-            if (authObj === null || authObj.$getAuth() === null) {
+            if (authObj.$getAuth() === null) {
                 $location.path("login");
             }
             if (CommonProp.getUser() == "") {

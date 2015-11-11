@@ -1,30 +1,96 @@
-/* app css stylesheet */
-
-.menu {
-  list-style: none;
-  border-bottom: 0.1em solid black;
-  margin-bottom: 2em;
-  padding: 0 0 0.5em;
+.footer {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  margin-top: 40px;
+  border-top: 1px solid #eee;
 }
 
-.menu:before {
-  content: "[";
+.jumbotron {
+  text-align: center;
+  background-color: transparent;
 }
 
-.menu:after {
-  content: "]";
+.jumbotron .btn {
+  padding: 14px 24px;
+  font-size: 21px;
 }
 
-.menu > li {
-  display: inline;
+td, th {
+  padding: 5px 20px;
 }
 
-.menu > li:before {
-  content: "|";
-  padding-right: 0.3em;
+@media (min-width: 1200px) {
+  .container {
+    width: 970px;
+  }
 }
 
-.menu > li:nth-child(1):before {
-  content: "";
-  padding: 0;
+body {
+  padding: 0 0;
+}
+
+.blog-masthead {
+  background-color: #428bca;
+  -webkit-box-shadow: inset 0 -2px 5px rgba(0, 0, 0, .1);
+  box-shadow: inset 0 -2px 5px rgba(0, 0, 0, .1);
+}
+
+.blog-nav-item {
+  position: relative;
+  display: inline-block;
+  padding: 10px;
+  font-weight: 500;
+  color: #cdddeb;
+}
+
+.blog-nav-item:hover,
+.blog-nav-item:focus {
+  color: #fff;
+  text-decoration: none;
+}
+
+.blog-nav .active {
+  color: #fff;
+}
+
+.blog-nav .active:after {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 0;
+  margin-left: -5px;
+  vertical-align: middle;
+  content: " ";
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid;
+  border-left: 5px solid transparent;
+}
+
+.blog-header {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.blog-title {
+  margin-top: 30px;
+  margin-bottom: 0;
+  font-size: 60px;
+  font-weight: normal;
+}
+
+.blog-description {
+  font-size: 20px;
+  color: #999;
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 768px) {
+  /* Remove the padding we set earlier */
+  .masthead,
+  .marketing,
+  .footer {
+    padding-right: 0;
+    padding-left: 0;
+  }
 }
