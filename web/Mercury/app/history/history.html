@@ -8,21 +8,22 @@
     <h2>Command History</h2>
 
 
-    <h3>Motors</h3>
+
     <table class="table table-bordered">
         <tr>
             <td>
+                <p class="lead">Motors</p>
                 <table class="table-striped">
                     <thead>
                     <tr>
-                        <th>Left PWM</th>
-                        <th>Right PWM</th>
+                        <th>Distance</th>
+                        <th>Angle</th>
                         <th>Timestamp</th>
                     </tr>
                     </thead>
                     <tr ng-repeat="command in latestMotorCommands">
-                        <td>{{command.leftMotors}}</td>
-                        <td>{{command.rightMotors}}</td>
+                        <td>{{command.distance}}</td>
+                        <td>{{command.angle}}</td>
                         <td>{{command.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
                     </tr>
                 </table>

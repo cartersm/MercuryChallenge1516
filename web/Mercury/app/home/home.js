@@ -55,18 +55,18 @@ angular.module('Mercury.home', [
                 firebase
                     .child("motorCommands")
                     .push({
-                        leftMotors: 0,
-                        rightMotors: 0,
+                        distance: 0,
+                        angle: 0,
                         timestamp: new Date().getTime()
                     });
             };
 
-            $scope.sendMotorCommand = function (leftPwm, rightPwm) {
-                console.log("sending motor command (" + leftPwm + ", " + rightPwm + ")");
+            $scope.sendMotorCommand = function (distance, angle) {
+                console.log("sending motor command (" + distance + "cm, " + angle + "deg)");
                 firebase.child("motorCommands")
                     .push({
-                        leftMotors: leftPwm,
-                        rightMotors: rightPwm,
+                        distance: distance,
+                        angle: angle,
                         timestamp: new Date().getTime()
                     });
             };

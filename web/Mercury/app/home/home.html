@@ -18,15 +18,16 @@
             <td>
                 <form class="form-inline" name="motorCommandForm">
                     <div class="form-group"
-                         ng-class="{ 'has-error' : motorCommandForm.leftPwm.$invalid || motorCommandForm.rightPwm.$invalid }">
-                        <label>Left PWM
-                            <input type="number" value="125" min="0" max="255" step="5" name="leftPwm"
-                                   ng-model="leftPwm" class="form-control" required="" autofocus="">
+                         ng-class="{ 'has-error' : motorCommandForm.distance.$invalid || motorCommandForm.motor_angle.$invalid }">
+                        <label>Distance (cm)
+                            <input type="number" value="10" min="0" max="100" step="5" name="distance"
+                                   ng-model="distance" class="form-control" required="" autofocus="">
                         </label>
 
-                        <label>Right PWM
-                            <input type="number" value="125" min="0" max="255" step="5" name="rightPwm"
-                                   ng-model="rightPwm" class="form-control" required="" autofocus="">
+                        <label>Angle (degrees))
+                            <input type="number" value="25" min="-180" max="180" step="15" name="motor_angle"
+                                   ng-model="motor_angle" class="form-control" required="" autofocus="">
+                            <p class="alert-danger" style="margin-top: 10px">Note: clockwise is positive</p>
                         </label>
 
                         <!--<p class="help-block" ng-show="motorCommandForm.leftPwm.$invalid">-->
@@ -91,7 +92,8 @@
         <tr class="text-center">
             <td>
                 <button class="btn btn-lg button-primary btn-block" type="submit"
-                        ng-click="sendMotorCommand(leftPwm, rightPwm)" ng-disabled="!leftPwm || !rightPwm">
+                        ng-click="sendMotorCommand(distance, motor_angle)"
+                        ng-disabled="!distance || !motor_angle">
                     Send Motor Command
                 </button>
                 <button class="btn btn-primary btn-danger btn-lg btn-block" type="submit" ng-click="sendStopCommand()">
@@ -135,12 +137,12 @@
             <td>
                 <table class="table-striped">
                     <tr ng-repeat="cmd in latestMotorCommands">
-                        <th>Left PWM</th>
-                        <td>{{cmd.leftMotors}}</td>
+                        <th>Distance</th>
+                        <td>{{cmd.distance}}</td>
                     </tr>
                     <tr ng-repeat="cmd in latestMotorCommands">
-                        <th>Right PWM</th>
-                        <td>{{cmd.rightMotors}}</td>
+                        <th>Angle</th>
+                        <td>{{cmd.angle}}</td>
                     </tr>
                     <tr ng-repeat="cmd in latestMotorCommands">
                         <th>Timestamp</th>
