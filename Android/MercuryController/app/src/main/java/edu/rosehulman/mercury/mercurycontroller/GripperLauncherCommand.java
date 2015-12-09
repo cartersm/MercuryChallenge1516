@@ -1,15 +1,15 @@
 package edu.rosehulman.mercury.mercurycontroller;
 
-public class GripperCommand {
+public class GripperLauncherCommand {
     private int angle;
     private String position;
     private long timestamp;
 
-    public GripperCommand() {
+    public GripperLauncherCommand() {
 
     }
 
-    public GripperCommand(int angle, String position, long timestamp) {
+    public GripperLauncherCommand(int angle, String position, long timestamp) {
         this.angle = angle;
         this.position = position;
         this.timestamp = timestamp;
