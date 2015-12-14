@@ -61,7 +61,6 @@ public class MercuryFirebaseService extends Service {
     public void onCreate() {
         super.onCreate();
         Firebase.setAndroidContext(this);
-        Log.d(MainActivity.TAG, "got here");
         mBirthTime = System.currentTimeMillis();
 
         mFirebaseRef = new Firebase("https://mercury-robotics-16.firebaseio.com/");
@@ -74,21 +73,16 @@ public class MercuryFirebaseService extends Service {
         } else {
             Log.d(MainActivity.TAG, "Already logged in");
         }
-        Log.d(MainActivity.TAG, "got here 2");
         mFirebaseRef.child("motorCommands").addChildEventListener(new MotorCommandListener());
         mFirebaseRef.child("gripperLauncherCommands").addChildEventListener(new GripperCommandListener());
         mFirebaseRef.child("ledCommands").addChildEventListener(new LedCommandListener());
 
-        Log.d(MainActivity.TAG, "got here 3");
-
-        // CONSIDER: may need to merge this onCreate() and onCreate() of AccessoryActivity somehow
         mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(
                 ACTION_USB_PERMISSION), 0);
 
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         registerReceiver(mUsbReceiver, filter);
-        Log.d(MainActivity.TAG, "got here 4");
     }
 
     private void postNotification(String notifString) {
@@ -129,30 +123,6 @@ public class MercuryFirebaseService extends Service {
     }
 
     /* AccessoryActivity methods */
-    public void sendCommand(String commandString) {
-        new AsyncTask<String, Void, Void>() {
-            @Override
-            protected Void doInBackground(String... params) {
-                String command = params[0];
-                char[] buffer = new char[command.length() + 1];
-                byte[] byteBuffer = new byte[command.length() + 1];
-                command.getChars(0, command.length(), buffer, 0);
-                buffer[command.length()] = '\n';
-                for (int i = 0; i < command.length() + 1; i++) {
-                    byteBuffer[i] = (byte) buffer[i];
-                }
-                if (mOutputStream != null) {
-                    try {
-                        mOutputStream.write(byteBuffer);
-                    } catch (IOException e) {
-                        Log.e(MainActivity.TAG, "write failed", e);
-                    }
-                }
-                return null;
-            }
-        }.execute(commandString);
-    }
-
     private void openAccessory(UsbAccessory accessory) {
         Log.d(MainActivity.TAG, "Open accessory called.");
         mFileDescriptor = mUsbManager.openAccessory(accessory);
@@ -184,40 +154,29 @@ public class MercuryFirebaseService extends Service {
         }
     }
 
-    /*
-    // CONSIDER: this may not be usable, nor necessary
-    // CONSIDER: getApplicationContext()
-    // Rx runnable.
-    private Runnable mRxRunnable = new Runnable() {
-        public void run() {
-            int ret = 0;
-            byte[] buffer = new byte[255];
-            // Loop that runs forever (or until a -1 error state).
-            while (ret >= 0) {
-                try {
-                    ret = mInputStream.read(buffer);
-                } catch (IOException e) {
-                    break;
+    public void sendCommand(String commandString) {
+        new AsyncTask<String, Void, Void>() {
+            @Override
+            protected Void doInBackground(String... params) {
+                String command = params[0];
+                char[] buffer = new char[command.length() + 1];
+                byte[] byteBuffer = new byte[command.length() + 1];
+                command.getChars(0, command.length(), buffer, 0);
+                buffer[command.length()] = '\n';
+                for (int i = 0; i < command.length() + 1; i++) {
+                    byteBuffer[i] = (byte) buffer[i];
                 }
-                if (ret > 0) {
-                    // Convert the bytes into a string.
-                    String received = new String(buffer, 0, ret);
-                    final String receivedCommand = received.trim();
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            onCommandReceived(receivedCommand);
-                        }
-                    });
+                if (mOutputStream != null) {
+                    try {
+                        mOutputStream.write(byteBuffer);
+                    } catch (IOException e) {
+                        Log.e(MainActivity.TAG, "write failed", e);
+                    }
                 }
+                return null;
             }
-        }
-    };
-
-    protected void onCommandReceived(final String receivedCommand) {
-        //Toast.makeText(this, "Received command = " + receivedCommand, Toast.LENGTH_SHORT).show();
-        Log.d(MainActivity.TAG, "Received command = " + receivedCommand);
+        }.execute(commandString);
     }
-    */
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
@@ -243,6 +202,14 @@ public class MercuryFirebaseService extends Service {
             }
         }
     };
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mUsbReceiver);
+    }
+
 
     /* Firebase Listeners */
     private class MotorCommandListener implements ChildEventListener {
