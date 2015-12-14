@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.rosehulman.mercury.mercurycontroller" >
+<manifest
+    package="edu.rosehulman.mercury.mercurycontroller"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <uses-feature
         android:name="android.hardware.usb.UsbAccessory"
         android:required="true" />
@@ -12,7 +14,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -22,6 +24,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- below is adapted from https://gist.github.com/vikrum/6170193#file-androidmanifest-xml -->
+        <!-- A background service to listen to the Firebase -->
+        <service
+            android:name=".MercuryFirebaseService"
+            android:exported="false"
+            android:process=":remote">
+            <intent-filter>
+                <action android:name="edu.rosehulman.mercury.controller.MercuryFirebaseService" />
+            </intent-filter>
+        </service>
+        <!-- Start the service at boot -->
+        <receiver android:name=".FirebaseBootStarter">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
