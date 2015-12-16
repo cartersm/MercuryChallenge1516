@@ -135,7 +135,7 @@ public class MainActivity extends AccessoryActivity {
     private class GripperCommandListener implements ChildEventListener {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-            GripperCommand cmd = dataSnapshot.getValue(GripperCommand.class);
+            GripperLauncherCommand cmd = dataSnapshot.getValue(GripperLauncherCommand.class);
             int angle = cmd.getAngle();
             String position = cmd.getPosition();
             long timestamp = cmd.getTimestamp();
