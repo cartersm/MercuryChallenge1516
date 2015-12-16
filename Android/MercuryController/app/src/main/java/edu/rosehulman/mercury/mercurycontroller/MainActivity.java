@@ -10,7 +10,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        startService(new Intent(this, MercuryFirebaseService.class));
+//        setContentView(R.layout.activity_main);
+        Intent thisIntent = getIntent();
+        Intent passIntent = new Intent(this, MercuryFirebaseService.class);
+        passIntent.putExtras(thisIntent);
+
+        startService(passIntent);
     }
 }

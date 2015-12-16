@@ -23,6 +23,12 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED"
+                android:resource="@xml/usb_accessory_filter" />
         </activity>
         <!-- below is adapted from https://gist.github.com/vikrum/6170193#file-androidmanifest-xml -->
         <!-- A background service to listen to the Firebase -->
@@ -35,11 +41,11 @@
             </intent-filter>
         </service>
         <!-- Start the service at boot -->
-        <receiver android:name=".FirebaseBootStarter">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
+        <!--<receiver android:name=".FirebaseBootStarter">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.BOOT_COMPLETED" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
 
     </application>
 
