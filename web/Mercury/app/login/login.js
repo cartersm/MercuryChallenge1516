@@ -12,6 +12,7 @@ angular.module('Mercury.login', [
     }])
     .controller('LoginCtrl', ["$scope", "$firebaseAuth", "$location", "CommonProp",
         function ($scope, $firebaseAuth, $location, CommonProp) {
+            $scope.signinFailed = false;
             var firebase = new Firebase("https://mercury-robotics-16.firebaseio.com");
             var authObj = $firebaseAuth(firebase);
             $scope.user = {};
@@ -30,10 +31,12 @@ angular.module('Mercury.login', [
                     password: password
                 }).then(function (authData) {
                     console.log("Logged in as: " + authData.uid);
+                    $scope.signinFailed = false;
                     $location.path("home");
                     CommonProp.setUser($scope.user.email);
                 }).catch(function (error) {
                     console.error("Authentication failed: ", error);
+                    $scope.signinFailed = true;
                 });
 
             }
