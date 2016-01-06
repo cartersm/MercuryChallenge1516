@@ -1,15 +1,34 @@
 {
-  "name": "angular-seed",
-  "description": "A starter project for AngularJS",
-  "version": "0.0.0",
-  "homepage": "https://github.com/angular/angular-seed",
+  "name": "mercury",
+  "description": "Rose-Hulman's Mercury Robotics Challenge 2016 website",
+  "version": "1.0.0",
+  "homepage": "https://github.com/cartersm/MercuryChallenge1516",
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "angular": "~1.4.0",
-    "angular-route": "~1.4.0",
-    "angular-loader": "~1.4.0",
-    "angular-mocks": "~1.4.0",
-    "html5-boilerplate": "~5.2.0"
-  }
+    "angular": "~1.4.8",
+    "angular-route": "~1.4.8",
+    "angularfire": "~1.1.3",
+    "bootstrap": "~3.3.6",
+    "firebase": "~2.3.2",
+    "html5-boilerplate": "~5.2.0",
+    "jquery": "~2.1.4"
+  },
+  "main": "app.js",
+  "moduleType": [],
+  "keywords": [
+    "mercury",
+    "robotics"
+  ],
+  "authors": [
+    "Sean Carter"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/bower_components",
+    "test",
+    "tests"
+  ]
 }
