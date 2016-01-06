@@ -24,7 +24,7 @@
                                    ng-model="distance" class="form-control" required="" autofocus="">
                         </label>
 
-                        <label>Angle (degrees))
+                        <label>Angle (degrees)
                             <input type="number" value="25" min="-180" max="180" step="15" name="motor_angle"
                                    ng-model="motor_angle" class="form-control" required="" autofocus="">
                             <p class="alert-danger" style="margin-top: 10px">Note: clockwise is positive</p>
@@ -57,7 +57,6 @@
             <td>
                 <form class="form-inline" name="ledCommandForm">
                     <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.ledNumber.$invalid}">
-                        <!-- TODO: how many LEDs? -->
                         <label>LedNumber
                             <input type="number" min="1" max="6" step="1" value="3" name="ledNumber"
                                    ng-model="ledNumber" class="form-control" required="" autofocus="">

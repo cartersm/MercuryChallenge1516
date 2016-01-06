@@ -7,23 +7,20 @@
     <title>Rose-Hulman Mercury Robotics</title>
 
     <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="bootstrap_signin/signin.css" rel="stylesheet">
-
-    <link href="justified-nav.css" rel="stylesheet">
-
+    <link href="login/bootstrap-signin.css" rel="stylesheet">
 </head>
 
 <body>
 
 <div class="container">
-    <div class="jumbotron" style="padding-bottom:0;">
+    <div class="jumbotron my-jumbotron">
         <h2>Rose-Hulman Mercury Robotics</h2>
     </div>
     <form class="form-signin" name="signinForm" role="form">
         <div class="form-group" ng-class="{ 'has-error' : signinForm.email.$invalid }">
             <label>Email
                 <input type="email" name="email" ng-model="user.email" class="form-control"
-                       placeholder="Email address" required="" autofocus="" >
+                       placeholder="Email address" required autofocus>
             </label>
 
             <p class="help-block" ng-show="signinForm.email.$invalid">Enter a valid email.</p>
@@ -32,7 +29,7 @@
         <div class="form-group" ng-class="{ 'has-error' : signinForm.password.$invalid }">
             <label>Password
                 <input type="password" name="password" ng-model="user.password" class="form-control"
-                       placeholder="Password" required="" ng-minlength="8">
+                       placeholder="Password" required ng-minlength="8">
             </label>
 
             <p class="help-block" ng-show="signinForm.password.$error.minlength">Min password length
@@ -43,7 +40,7 @@
             Sign in
         </button>
     </form>
-
+    <p class="help-block alert-danger" ng-show="signinFailed">Invalid username or password</p>
 </div>
 </body>
 </html>
