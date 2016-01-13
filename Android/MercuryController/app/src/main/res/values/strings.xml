@@ -14,4 +14,6 @@
     <string name="position">Position</string>
     <string name="led_number">LED Number</string>
     <string name="status">Status</string>
+    <string name="relaunch_hangout">Relaunch Hangout</string>
+    <string name="greeting">Welcome to the Rose-Hulman Mercury Robotics app</string>
 </resources>

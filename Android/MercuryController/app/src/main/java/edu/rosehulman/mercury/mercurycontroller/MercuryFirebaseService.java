@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
@@ -40,6 +41,7 @@ public class MercuryFirebaseService extends Service {
 
     public static final String EMAIL = "cartersm@rose-hulman.edu";
     public static final String PASSWORD = "RoseHulmanMercury2016";
+    public static final String CONNECTION_CHANGED_MSG = "CONNECTION_CHANGED_MSG";
     private static final String LED_FORMAT_STRING = "LED %d %s";
     private static final int ID = new Random().nextInt();
     private long mBirthTime;
@@ -55,6 +57,8 @@ public class MercuryFirebaseService extends Service {
     private FileOutputStream mOutputStream;
     private PendingIntent mPermissionIntent;
     private Handler mHandler = new Handler();
+    private final BroadcastReceiver mUsbReceiver = new UsbReceiver();
+    private boolean mIsRunning = false;
 
     @Nullable
     @Override
@@ -62,12 +66,14 @@ public class MercuryFirebaseService extends Service {
         return null;
     }
 
+    /* TODO: maybe: update the widget with the same data as the notification */
+
     @Override
     public void onCreate() {
         super.onCreate();
 
         // Firebase stuff
-        Firebase.setAndroidContext(this);
+        Firebase.setAndroidContext(getApplicationContext());
 
         mBirthTime = System.currentTimeMillis();
 
@@ -94,6 +100,11 @@ public class MercuryFirebaseService extends Service {
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
         registerReceiver(mUsbReceiver, filter);
+
+        // Connection watcher
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(new ConnectivityReceiver(), intentFilter);
     }
 
     private void postNotification(String notifString) {
@@ -145,7 +156,7 @@ public class MercuryFirebaseService extends Service {
     }
 
     /* AccessoryActivity methods */
-    Runnable mRxRunnable = new Runnable() {
+    private Runnable mRxRunnable = new Runnable() {
 
         public void run() {
             int ret = 0;
@@ -179,32 +190,6 @@ public class MercuryFirebaseService extends Service {
         postNotification("Received command: " + receivedCommand);
     }
 
-    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (ACTION_USB_PERMISSION.equals(action)) {
-                synchronized (this) {
-                    UsbAccessory accessory = intent
-                            .getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
-                    if (intent.getBooleanExtra(
-                            UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        openAccessory(accessory);
-                    } else {
-                        Log.d(MainActivity.TAG, "permission denied for accessory " + accessory);
-                    }
-                    mPermissionRequestPending = false;
-                }
-            } else if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
-                UsbAccessory accessory = intent
-                        .getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
-                if (accessory != null && accessory.equals(mAccessory)) {
-                    closeAccessory();
-                }
-            }
-        }
-    };
-
     protected void sendCommand(final String commandString) {
         new AsyncTask<String, Void, Void>() {
             @Override
@@ -217,11 +202,11 @@ public class MercuryFirebaseService extends Service {
                 for (int i = 0; i < command.length() + 1; i++) {
                     byteBuffer[i] = (byte) buffer[i];
                 }
+                String msg = "Sending command \"" + commandString + "\"";
+                Log.d(MainActivity.TAG, msg);
+                postNotification(msg);
                 if (mOutputStream != null) {
                     try {
-                        String msg = "Sending command \"" + commandString + "\"";
-                        Log.d(MainActivity.TAG, msg);
-                        postNotification(msg);
                         mOutputStream.write(byteBuffer);
                     } catch (IOException e) {
                         Log.e(MainActivity.TAG, "write failed", e);
@@ -268,6 +253,16 @@ public class MercuryFirebaseService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // intent from ConnectivityReceiver
+        Log.d(MainActivity.TAG, "made it here");
+        String message = intent.getStringExtra(CONNECTION_CHANGED_MSG);
+        if (message != null) {
+            Log.d(MainActivity.TAG, "message is \"" + message + "\"");
+            sendCommand(message);
+            return START_STICKY;
+        }
+
+        // first-time startup
         if (mInputStream != null && mOutputStream != null) {
             return -1;
         }
@@ -309,10 +304,10 @@ public class MercuryFirebaseService extends Service {
                 Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-//            String command = String.format(LED_FORMAT_STRING, distance, angle);
+            String command = String.format(LED_FORMAT_STRING, distance, angle);
 //            Toast.makeText(MainActivity.this, "Sending command \"" + command + "\"", Toast.LENGTH_SHORT).show();
-//            Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
-//            sendCommand(command);
+            Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
+            sendCommand(command);
         }
 
         @Override
@@ -349,10 +344,10 @@ public class MercuryFirebaseService extends Service {
                 Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-//            String command = String.format(LED_FORMAT_STRING, angle, position.toUpperCase());
+            String command = String.format(LED_FORMAT_STRING, angle, position.toUpperCase());
 //            Toast.makeText(MainActivity.this, "Sending command \"" + command + "\"", Toast.LENGTH_SHORT).show();
-//            Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
-//            sendCommand(command);
+            Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
+            sendCommand(command);
         }
 
         @Override
@@ -416,4 +411,31 @@ public class MercuryFirebaseService extends Service {
             Log.e(MainActivity.TAG, "Fireabse Error: " + firebaseError.getMessage());
         }
     }
+
+    private class UsbReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (ACTION_USB_PERMISSION.equals(action)) {
+                synchronized (this) {
+                    UsbAccessory accessory = intent
+                            .getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
+                    if (intent.getBooleanExtra(
+                            UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        openAccessory(accessory);
+                    } else {
+                        Log.d(MainActivity.TAG, "permission denied for accessory " + accessory);
+                    }
+                    mPermissionRequestPending = false;
+                }
+            } else if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
+                UsbAccessory accessory = intent
+                        .getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
+                if (accessory != null && accessory.equals(mAccessory)) {
+                    closeAccessory();
+                }
+            }
+        }
+    }
+
 }

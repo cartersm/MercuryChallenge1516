@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 public class MainActivity extends Activity {
     public static final String TAG = "MERCC";
+    public static final String HANGOUT_URL = "https://plus.google.com/hangouts/_/event/cesf9en94g0bi69039k5bc9h890";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,7 +19,7 @@ public class MainActivity extends Activity {
 
         startService(passIntent);
 
-        Intent hangoutsIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://plus.google.com/hangouts/_/event/cesf9en94g0bi69039k5bc9h890"));
+        Intent hangoutsIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(HANGOUT_URL));
         startActivity(hangoutsIntent);
     }
 }

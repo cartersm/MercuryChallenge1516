@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/semitransparent"
+    android:weightSum="1">
+<!-- TODO: big button to start app, and wait to change widget until service tells it to update -->
+    <ImageButton
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/widgetButton"
+        android:layout_gravity="center_horizontal|center_vertical"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:src="@drawable/mercury_logo" />
+</LinearLayout>
