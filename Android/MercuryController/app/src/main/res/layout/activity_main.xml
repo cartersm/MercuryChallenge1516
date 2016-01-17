@@ -18,10 +18,10 @@
         android:gravity="center"/>
 
     <Button
-        android:id="@+id/hangouts_button"
+        android:id="@+id/video_call_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/relaunch_hangout"
+        android:text="@string/relaunch_video_call"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 
