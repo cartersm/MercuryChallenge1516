@@ -42,6 +42,8 @@ public class MercuryFirebaseService extends Service {
     public static final String EMAIL = "cartersm@rose-hulman.edu";
     public static final String PASSWORD = "RoseHulmanMercury2016";
     public static final String CONNECTION_CHANGED_MSG = "CONNECTION_CHANGED_MSG";
+    private static final String MOTOR_FORMAT_STRING = "MOTORS %d %d";
+    private static final String GRIPPER_FORMAT_STRING = "GRIPPER %s %s %s";
     private static final String LED_FORMAT_STRING = "LED %d %s";
     private static final int ID = new Random().nextInt();
     private long mBirthTime;
@@ -304,7 +306,7 @@ public class MercuryFirebaseService extends Service {
                 Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-            String command = String.format(LED_FORMAT_STRING, distance, angle);
+            String command = String.format(MOTOR_FORMAT_STRING, distance, angle);
 //            Toast.makeText(MainActivity.this, "Sending command \"" + command + "\"", Toast.LENGTH_SHORT).show();
             Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
             sendCommand(command);
@@ -335,8 +337,9 @@ public class MercuryFirebaseService extends Service {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             GripperLauncherCommand cmd = dataSnapshot.getValue(GripperLauncherCommand.class);
-            int angle = cmd.getAngle();
+            boolean launch = cmd.getLaunch();
             String position = cmd.getPosition();
+            String location = cmd.getLocation();
             long timestamp = cmd.getTimestamp();
 
             if (timestamp < mBirthTime) {
@@ -344,7 +347,7 @@ public class MercuryFirebaseService extends Service {
                 Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-            String command = String.format(LED_FORMAT_STRING, angle, position.toUpperCase());
+            String command = String.format(GRIPPER_FORMAT_STRING, launch, location, position.toUpperCase());
 //            Toast.makeText(MainActivity.this, "Sending command \"" + command + "\"", Toast.LENGTH_SHORT).show();
             Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
             sendCommand(command);
