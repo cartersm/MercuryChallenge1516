@@ -18,15 +18,16 @@
             <td>
                 <form class="form-inline" name="motorCommandForm">
                     <div class="form-group"
-                         ng-class="{ 'has-error' : motorCommandForm.distance.$invalid || motorCommandForm.motor_angle.$invalid }">
+                         ng-class="{ 'has-error' : motorCommandForm.distance.$invalid || motorCommandForm.angle.$invalid }">
                         <label>Distance (cm)
-                            <input type="number" value="10" min="0" max="100" step="5" name="distance"
-                                   ng-model="distance" class="form-control" required="" autofocus="">
+                            <input type="number" value="0" min="-100" max="100" step="5" name="distance"
+                                   ng-model="motor.distance" class="form-control" required autofocus>
                         </label>
 
                         <label>Angle (degrees)
-                            <input type="number" value="25" min="-180" max="180" step="15" name="motor_angle"
-                                   ng-model="motor_angle" class="form-control" required="" autofocus="">
+                            <input type="number" value="0" min="-180" max="180" step="15" name="angle"
+                                   ng-model="motor.angle" class="form-control" required>
+
                             <p class="alert-danger" style="margin-top: 10px">Note: clockwise is positive</p>
                         </label>
 
@@ -42,15 +43,45 @@
             </td>
             <td>
                 <form class="form-inline" name="gripperCommandForm">
-                    <div class="form-group" ng-class="{ 'has-error' : gripperCommandForm.angle.$invalid}">
-                        <label>Angle
-                            <input type="number" min="0" max="180" step="10" value="90" name="angle"
-                                   ng-model="angle" class="form-control" required="" autofocus="">
-                        </label>
+                    <div class="form-group" ng-class="{ 'has-error' : gripperCommandForm.location.$invalid}">
+                        <label>Drawbridge Location</label>
 
-                        <!--<p class="help-block" ng-show="gripperCommandForm.angle.$invalid">-->
-                        <!--Angle must be an integer between 0 and 360-->
-                        <!--</p>-->
+                        <div class="btn-group" data-toggle="buttons">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="location" ng-model="gripper.location"
+                                           value="raised" required>
+                                    Raised
+                                </label>
+                            </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="location" ng-model="gripper.location"
+                                           value="lowered" required>
+                                    Lowered
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" ng-class="{ 'has-error' : gripperCommandForm.position.$invalid}">
+                        <label>Gripper Position</label>
+
+                        <div class="btn-group" data-toggle="buttons">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="position" ng-model="gripper.position"
+                                           value="open" required>
+                                    Open
+                                </label>
+                            </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="position" ng-model="gripper.position"
+                                           value="closed" required>
+                                    Closed
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </td>
@@ -59,7 +90,7 @@
                     <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.ledNumber.$invalid}">
                         <label>LedNumber
                             <input type="number" min="1" max="6" step="1" value="3" name="ledNumber"
-                                   ng-model="ledNumber" class="form-control" required="" autofocus="">
+                                   ng-model="led.ledNumber" class="form-control" required>
                         </label>
 
                         <!--<p class="help-block" ng-show="ledCommandForm.ledNumber.$invalid">-->
@@ -72,12 +103,12 @@
                         <div class="btn-group" data-toggle="buttons">
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="status" ng-model="status" value="on">ON
+                                    <input type="radio" name="status" ng-model="led.status" value="on" required>ON
                                 </label>
                             </div>
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="status" ng-model="status" value="off">OFF
+                                    <input type="radio" name="status" ng-model="led.status" value="off" required>OFF
                                 </label>
                             </div>
                         </div>
@@ -91,8 +122,8 @@
         <tr class="text-center">
             <td>
                 <button class="btn btn-lg button-primary btn-block" type="submit"
-                        ng-click="sendMotorCommand(distance, motor_angle)"
-                        ng-disabled="!distance || !motor_angle">
+                        ng-click="sendMotorCommand(motor.distance, motor.angle)"
+                        ng-disabled="!motor.distance || !motor.angle">
                     Send Motor Command
                 </button>
                 <button class="btn btn-primary btn-danger btn-lg btn-block" type="submit" ng-click="sendStopCommand()">
@@ -100,20 +131,22 @@
                 </button>
             </td>
             <td>
-                <button class="btn button-primary btn-lg btn-block" type="submit"
-                        ng-click="sendGripperAngleCommand(angle)" ng-disabled="!angle">
-                    Send Angle Command
-                </button>
-                <button class="btn btn-primary btn-lg btn-block" type="submit" ng-click="sendGripperCloseCommand()">
-                    CLOSE
-                </button>
-                <button class="btn btn-primary btn-lg btn-block" type="submit" ng-click="sendGripperOpenCommand()">
-                    OPEN
-                </button>
+                <p>
+                    <button class="btn btn-primary btn-lg btn-block" type="submit"
+                            ng-click="sendGripperCommand(gripper.location, gripper.position)"
+                            ng-disabled="!gripper.location || !gripper.position">
+                        Send Gripper Command
+                    </button>
+                    <button class="btn btn-primary btn-lg btn-block btn-success" type="submit"
+                            ng-disabled="isGripperRaised()"
+                            ng-click="sendGripperLaunchCommand()">
+                        LAUNCH
+                    </button>
+                </p>
             </td>
             <td>
                 <button class="btn button-primary btn-lg btn-block" type="submit"
-                        ng-click="sendLedCommand(ledNumber, status)" ng-disabled="!ledNumber">
+                        ng-click="sendLedCommand(led.ledNumber, led.status)" ng-disabled="!led.ledNumber || !led.status">
                     Send LED Command
                 </button>
             </td>
@@ -152,8 +185,12 @@
             <td>
                 <table class="table-striped">
                     <tr ng-repeat="cmd in latestGripperCommands">
-                        <th>Angle</th>
-                        <td>{{cmd.angle}}</td>
+                        <th>Launch</th>
+                        <td>{{cmd.launch}}</td>
+                    </tr>
+                    <tr ng-repeat="cmd in latestGripperCommands">
+                        <th>Location</th>
+                        <td>{{cmd.location}}</td>
                     </tr>
                     <tr ng-repeat="cmd in latestGripperCommands">
                         <th>Position</th>

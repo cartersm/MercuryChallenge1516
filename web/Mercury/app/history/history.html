@@ -33,13 +33,15 @@
                 <table class="table-striped">
                     <thead>
                     <tr>
-                        <th>Angle</th>
+                        <th>Launch</th>
+                        <th>Location</th>
                         <th>Position</th>
                         <th>Timestamp</th>
                     </tr>
                     </thead>
                     <tr ng-repeat="command in latestGripperCommands">
-                        <td>{{command.angle}}</td>
+                        <td>{{command.launch}}</td>
+                        <td>{{command.location}}</td>
                         <td>{{command.position}}</td>
                         <td>{{command.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
                     </tr>
