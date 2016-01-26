@@ -5,6 +5,8 @@
   "main": "app.js",
   "devDependencies": {
     "bower": "^1.7.2",
+    "jscs": "^2.9.0",
+    "jscs-angular": "^1.2.1",
     "shelljs": "^0.5.3"
   },
   "scripts": {
