@@ -1,6 +1,6 @@
 angular.module('Mercury.history', [
     'ngRoute',
-    "firebase"
+    'firebase'
 ])
     .config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/history', {
@@ -8,24 +8,26 @@ angular.module('Mercury.history', [
             controller: 'HistoryCtrl'
         });
     }])
-    .controller('HistoryCtrl', ["$scope", "$firebaseAuth", "$firebaseArray", "$location", "CommonProp",
-        function ($scope, $firebaseAuth, $firebaseArray, $location, CommonProp) {
-            var firebase = new Firebase("https://mercury-robotics-16.firebaseio.com");
-            var authObj = $firebaseAuth(firebase);
-            if (authObj === null || authObj.$getAuth() === null) {
-                $location.path("login");
-            }
-            if (CommonProp.getUser() == "") {
-                CommonProp.setUser(authObj.$getAuth().password.email);
-            }
-            $scope.username = CommonProp.getUser();
+    .controller('HistoryCtrl', [
+        '$scope',
+        '$firebaseAuth',
+        '$firebaseArray',
+        '$location',
+        'AuthService',
+        function ($scope, $firebaseAuth, $firebaseArray, $location, AuthService) {
+            var firebase = new Firebase('https://mercury-robotics-16.firebaseio.com');
+            AuthService.checkAuth(function () {
+                if (!AuthService.hasAuth()) {
+                    $location.path('/login');
+                }
+            });
 
             $scope.logout = function () {
-                CommonProp.logoutUser();
+                AuthService.logoutUser();
             };
 
-            var motorQuery = firebase.child("motorCommands")
-                .orderByChild("timestamp")
+            var motorQuery = firebase.child('motorCommands')
+                .orderByChild('timestamp')
                 .limitToLast(10);
             $firebaseArray(motorQuery)
                 .$loaded()
@@ -33,8 +35,8 @@ angular.module('Mercury.history', [
                     $scope.latestMotorCommands = data.slice().reverse();
                 });
 
-            var gripperQuery = firebase.child("gripperLauncherCommands")
-                .orderByChild("timestamp")
+            var gripperQuery = firebase.child('gripperLauncherCommands')
+                .orderByChild('timestamp')
                 .limitToLast(10);
             $firebaseArray(gripperQuery)
                 .$loaded()
@@ -42,8 +44,8 @@ angular.module('Mercury.history', [
                     $scope.latestGripperCommands = data.slice().reverse();
                 });
 
-            var ledQuery = firebase.child("ledCommands")
-                .orderByChild("timestamp")
+            var ledQuery = firebase.child('ledCommands')
+                .orderByChild('timestamp')
                 .limitToLast(10);
             $firebaseArray(ledQuery)
                 .$loaded()

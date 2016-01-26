@@ -1,22 +1,9 @@
-<!DOCTYPE html>
-<html lang="en" ng-app="Mercury">
-
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-    <title>Rose-Hulman Mercury Robotics</title>
-
-    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="login/bootstrap-signin.css" rel="stylesheet">
-</head>
-
-<body>
-
+<link rel="stylesheet" href="./login/bootstrap-signin.css">
 <div class="container">
     <div class="jumbotron my-jumbotron">
         <h2>Rose-Hulman Mercury Robotics</h2>
     </div>
-    <form class="form-signin" name="signinForm" role="form">
+    <form class="form-signin" name="signinForm" role="form" novalidate>
         <div class="form-group" ng-class="{ 'has-error' : signinForm.email.$invalid }">
             <label>Email
                 <input type="email" name="email" ng-model="user.email" class="form-control"
@@ -42,5 +29,3 @@
     </form>
     <p class="help-block alert-danger" ng-show="signinFailed">Invalid username or password</p>
 </div>
-</body>
-</html>

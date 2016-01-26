@@ -1,9 +1,4 @@
 <div class="container">
-    <div class="page-header">
-        <h1>Rose-Hulman Mercury Robotics</h1>
-        <h4 class="blog-description">Signed in as <b>{{username}}</b></h4>
-    </div>
-
     <h2>Command Center</h2>
     <table class="table table-bordered">
         <thead>
@@ -16,33 +11,26 @@
         <tbody>
         <tr class="text-center">
             <td>
-                <form class="form-inline" name="motorCommandForm">
+                <form class="form-inline" name="motorCommandForm" novalidate>
                     <div class="form-group"
-                         ng-class="{ 'has-error' : motorCommandForm.distance.$invalid || motorCommandForm.angle.$invalid }">
+                         ng-class="{ 'has-error' : motorCommandForm.distance.$invalid }">
                         <label>Distance (cm)
                             <input type="number" value="0" min="-100" max="100" step="5" name="distance"
                                    ng-model="motor.distance" class="form-control" required autofocus>
                         </label>
-
+                    </div>
+                    <div class="form-group" ng-class="{ 'has-error' : motorCommandForm.angle.$invalid }">
                         <label>Angle (degrees)
                             <input type="number" value="0" min="-180" max="180" step="15" name="angle"
                                    ng-model="motor.angle" class="form-control" required>
 
                             <p class="alert-danger" style="margin-top: 10px">Note: clockwise is positive</p>
                         </label>
-
-                        <!--<p class="help-block" ng-show="motorCommandForm.leftPwm.$invalid">-->
-                        <!--Left PWM must be an integer between 0 and 255-->
-                        <!--</p>-->
-
-                        <!--<p class="help-block" ng-show="motorCommandForm.rightPwm.$invalid">-->
-                        <!--Right PWM must be an integer between 0 and 255-->
-                        <!--</p>-->
                     </div>
                 </form>
             </td>
             <td>
-                <form class="form-inline" name="gripperCommandForm">
+                <form class="form-inline" name="gripperCommandForm" novalidate>
                     <div class="form-group" ng-class="{ 'has-error' : gripperCommandForm.location.$invalid}">
                         <label>Drawbridge Location</label>
 
@@ -86,16 +74,12 @@
                 </form>
             </td>
             <td>
-                <form class="form-inline" name="ledCommandForm">
+                <form class="form-inline" name="ledCommandForm" novalidate>
                     <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.ledNumber.$invalid}">
                         <label>LedNumber
                             <input type="number" min="1" max="6" step="1" value="3" name="ledNumber"
                                    ng-model="led.ledNumber" class="form-control" required>
                         </label>
-
-                        <!--<p class="help-block" ng-show="ledCommandForm.ledNumber.$invalid">-->
-                        <!--LED number must be an integer between 1 and 3-->
-                        <!--</p>-->
                     </div>
                     <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.status.$invalid}">
                         <label>LED Status</label>
@@ -103,18 +87,17 @@
                         <div class="btn-group" data-toggle="buttons">
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="status" ng-model="led.status" value="on" required>ON
+                                    <input type="radio" name="status" ng-model="led.status" value="on" required>
+                                    ON
                                 </label>
                             </div>
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="status" ng-model="led.status" value="off" required>OFF
+                                    <input type="radio" name="status" ng-model="led.status" value="off" required>
+                                    OFF
                                 </label>
                             </div>
                         </div>
-                        <!--<p class="help-block" ng-show="ledCommandForm.status.$invalid">-->
-                        <!--LED status must be selected-->
-                        <!--</p>-->
                     </div>
                 </form>
             </td>
@@ -123,7 +106,7 @@
             <td>
                 <button class="btn btn-lg button-primary btn-block" type="submit"
                         ng-click="sendMotorCommand(motor.distance, motor.angle)"
-                        ng-disabled="!motor.distance || !motor.angle">
+                        ng-disabled="motorCommandForm.$invalid || isMotorCommandInvalid(motor)">
                     Send Motor Command
                 </button>
                 <button class="btn btn-primary btn-danger btn-lg btn-block" type="submit" ng-click="sendStopCommand()">
@@ -134,7 +117,7 @@
                 <p>
                     <button class="btn btn-primary btn-lg btn-block" type="submit"
                             ng-click="sendGripperCommand(gripper.location, gripper.position)"
-                            ng-disabled="!gripper.location || !gripper.position">
+                            ng-disabled="gripperCommandForm.$invalid">
                         Send Gripper Command
                     </button>
                     <button class="btn btn-primary btn-lg btn-block btn-success" type="submit"
@@ -146,7 +129,8 @@
             </td>
             <td>
                 <button class="btn button-primary btn-lg btn-block" type="submit"
-                        ng-click="sendLedCommand(led.ledNumber, led.status)" ng-disabled="!led.ledNumber || !led.status">
+                        ng-click="sendLedCommand(led.ledNumber, led.status)"
+                        ng-disabled="ledCommandForm.$invalid">
                     Send LED Command
                 </button>
             </td>

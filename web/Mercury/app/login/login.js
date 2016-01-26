@@ -10,16 +10,20 @@ angular.module('Mercury.login', [
             controller: 'LoginCtrl'
         });
     }])
-    .controller('LoginCtrl', ["$scope", "$firebaseAuth", "$location", "CommonProp",
-        function ($scope, $firebaseAuth, $location, CommonProp) {
+    .controller('LoginCtrl', [
+        "$scope",
+        "$firebaseAuth",
+        "$location",
+        '$window',
+        "AuthService",
+        function ($scope, $firebaseAuth, $location, $window, AuthService) {
             $scope.signinFailed = false;
-            var firebase = new Firebase("https://mercury-robotics-16.firebaseio.com");
-            var authObj = $firebaseAuth(firebase);
-            $scope.user = {};
+            AuthService.checkAuth(function () {
+                $window.location.reload();
+                $location.path('/home');
+            });
 
-            if (authObj.$getAuth() !== null) {
-                $location.path("home");
-            }
+            var authObj = AuthService.getAuthObject();
 
             $scope.SignIn = function (event) {
                 event.preventDefault();
@@ -30,14 +34,18 @@ angular.module('Mercury.login', [
                     email: username,
                     password: password
                 }).then(function (authData) {
-                    console.log("Logged in as: " + authData.uid);
-                    $scope.signinFailed = false;
-                    $location.path("home");
-                    CommonProp.setUser($scope.user.email);
+                    AuthService.checkAuth(function () {
+                        $scope.signinFailed = false;
+                        AuthService.setUser(authData.password.email);
+                        $('#page-header').removeClass('hidden');
+                        $('#nav-bar').removeClass('hidden');
+                        $window.location.reload();
+                        $location.path('/home');
+                    });
                 }).catch(function (error) {
                     console.error("Authentication failed: ", error);
                     $scope.signinFailed = true;
                 });
-
             }
-        }]);
+        }
+    ]);
