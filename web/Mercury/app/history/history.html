@@ -10,12 +10,14 @@
                     <tr>
                         <th>Distance</th>
                         <th>Angle</th>
+                        <th>Serpentine Mode</th>
                         <th>Timestamp</th>
                     </tr>
                     </thead>
                     <tr ng-repeat="command in latestMotorCommands">
                         <td>{{command.distance}}</td>
                         <td>{{command.angle}}</td>
+                        <td>{{command.serpentine}}</td>
                         <td>{{command.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
                     </tr>
                 </table>

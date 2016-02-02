@@ -30,13 +30,12 @@ angular.module('Mercury', [
                 // Remove the 'hidden' class so ngShow can take over.
                 $('#page-header').removeClass('hidden');
                 $('#nav-bar').removeClass('hidden');
-                console.log(AuthService.getUser());
                 $scope.username = AuthService.getUser();
             });
 
             $scope.hasAuth = function () {
                 return AuthService.hasAuth();
-            }
+            };
 
             $scope.logout = function () {
                 AuthService.logoutUser();

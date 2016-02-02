@@ -35,14 +35,14 @@ import java.util.Random;
 /**
  * Adapted from <a href="https://github.com/Rose-Hulman-ROBO4xx/1314-Mercury/blob/master/GCMADKservice/src/edu/rosehulman/gcmadkservice/GCMADKservice.java">
  * This Gist
- * </a>, which is in turn adapted from {@link edu.rosehulman.me435.AccessoryActivity}.
+ * </a>, which is in turn adapted from edu.rosehulman.me435.AccessoryActivity.
  */
 public class MercuryFirebaseService extends Service {
 
     public static final String EMAIL = "cartersm@rose-hulman.edu";
     public static final String PASSWORD = "RoseHulmanMercury2016";
     public static final String CONNECTION_CHANGED_MSG = "CONNECTION_CHANGED_MSG";
-    private static final String MOTOR_FORMAT_STRING = "MOTORS %d %d";
+    private static final String MOTOR_FORMAT_STRING = "MOTORS %d %d %b";
     private static final String GRIPPER_FORMAT_STRING = "GRIPPER %s %s %s";
     private static final String LED_FORMAT_STRING = "LED %d %s";
     private static final int ID = new Random().nextInt();
@@ -299,6 +299,7 @@ public class MercuryFirebaseService extends Service {
             MotorCommand cmd = dataSnapshot.getValue(MotorCommand.class);
             int distance = cmd.getDistance();
             int angle = cmd.getAngle();
+            boolean isSerpentine = cmd.isSerpentine();
             long timestamp = cmd.getTimestamp();
 
             if (timestamp < mBirthTime) {
@@ -306,8 +307,7 @@ public class MercuryFirebaseService extends Service {
                 Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-            String command = String.format(MOTOR_FORMAT_STRING, distance, angle);
-//            Toast.makeText(MainActivity.this, "Sending command \"" + command + "\"", Toast.LENGTH_SHORT).show();
+            String command = String.format(MOTOR_FORMAT_STRING, distance, angle, isSerpentine);
             Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
             sendCommand(command);
         }
@@ -348,7 +348,6 @@ public class MercuryFirebaseService extends Service {
                 return;
             }
             String command = String.format(GRIPPER_FORMAT_STRING, launch, location, position.toUpperCase());
-//            Toast.makeText(MainActivity.this, "Sending command \"" + command + "\"", Toast.LENGTH_SHORT).show();
             Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
             sendCommand(command);
         }

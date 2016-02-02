@@ -32,7 +32,8 @@ angular.module('Mercury.home', [
                     $scope.latestMotorCommands = data;
                     $scope.motor = {
                         distance: 0,
-                        angle: 0
+                        angle: 0,
+                        serpentine: false
                     };
                 });
 
@@ -71,30 +72,40 @@ angular.module('Mercury.home', [
                     .push({
                         distance: 0,
                         angle: 0,
+                        serpentine: false,
                         timestamp: new Date().getTime()
                     });
                 $scope.motor = {
                     distance: 0,
-                    angle: 0
+                    angle: 0,
+                    serpentine: false
                 };
             };
 
-            $scope.sendMotorCommand = function (distance, angle) {
-                console.log('sending motor command (' + distance + 'cm, ' + angle + 'deg)');
+            $scope.sendMotorCommand = function (cmd) {
+                console.log('sending motor command (' +
+                    cmd.distance + 'cm, ' +
+                    cmd.angle + 'deg, ' +
+                    cmd.serpentine + ')');
                 firebase.child('motorCommands')
                     .push({
-                        distance: distance,
-                        angle: angle,
+                        distance: cmd.distance,
+                        angle: cmd.angle,
+                        serpentine: cmd.serpentine,
                         timestamp: new Date().getTime()
                     });
                 $scope.motor = {
-                    distance: '',
-                    angle: ''
+                    distance: 0,
+                    angle: 0,
+                    serpentine: false
                 };
             };
 
-            $scope.sendGripperCommand = function (location, position) {
-                console.log('sending gripper command (' + location + ', ' + position + ')');
+            $scope.sendGripperCommand = function (cmd) {
+                console.log('sending gripper command (' +
+                    cmd.launch + ', ' +
+                    cmd.location + ', ' +
+                    cmd.position + ')');
                 firebase.child('gripperLauncherCommands')
                     .push({
                         launch: false,
@@ -133,12 +144,12 @@ angular.module('Mercury.home', [
                 return (!motor.distance && motor.distance !== 0) || (!motor.angle && motor.angle !== 0);
             };
 
-            $scope.sendLedCommand = function (ledNumber, status) {
-                console.log('sending LED command (' + ledNumber + ', ' + status + ')');
+            $scope.sendLedCommand = function (cmd) {
+                console.log('sending LED command (' + cmd.ledNumber + ', ' + cmd.status + ')');
                 firebase.child('ledCommands')
                     .push({
-                        ledNumber: ledNumber,
-                        status: status,
+                        ledNumber: cmd.ledNumber,
+                        status: cmd.status,
                         timestamp: new Date().getTime()
                     });
                 $scope.led = {

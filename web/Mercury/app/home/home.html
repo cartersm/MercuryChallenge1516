@@ -23,8 +23,12 @@
                         <label>Angle (degrees)
                             <input type="number" value="0" min="-180" max="180" step="15" name="angle"
                                    ng-model="motor.angle" class="form-control" required>
-
-                            <p class="alert-danger" style="margin-top: 10px">Note: clockwise is positive</p>
+                        </label>
+                    </div>
+                    <div class="form-group"
+                         ng-class="{ 'has-error' : motorCommandForm.serpentine.$invalid }">
+                        <label>Serpentine Mode
+                            <input type="checkbox" name="serpentine" ng-model="motor.serpentine" class="form-control">
                         </label>
                     </div>
                 </form>
@@ -104,8 +108,8 @@
         </tr>
         <tr class="text-center">
             <td>
-                <button class="btn btn-lg button-primary btn-block" type="submit"
-                        ng-click="sendMotorCommand(motor.distance, motor.angle)"
+                <button class="btn btn-primary btn-lg btn-block" type="submit"
+                        ng-click="sendMotorCommand(motor)"
                         ng-disabled="motorCommandForm.$invalid || isMotorCommandInvalid(motor)">
                     Send Motor Command
                 </button>
@@ -114,22 +118,20 @@
                 </button>
             </td>
             <td>
-                <p>
-                    <button class="btn btn-primary btn-lg btn-block" type="submit"
-                            ng-click="sendGripperCommand(gripper.location, gripper.position)"
-                            ng-disabled="gripperCommandForm.$invalid">
-                        Send Gripper Command
-                    </button>
-                    <button class="btn btn-primary btn-lg btn-block btn-success" type="submit"
-                            ng-disabled="isGripperRaised()"
-                            ng-click="sendGripperLaunchCommand()">
-                        LAUNCH
-                    </button>
-                </p>
+                <button class="btn btn-primary btn-lg btn-block" type="submit"
+                        ng-click="sendGripperCommand(gripper)"
+                        ng-disabled="gripperCommandForm.$invalid">
+                    Send Gripper Command
+                </button>
+                <button class="btn btn-primary btn-lg btn-block btn-success" type="submit"
+                        ng-click="sendGripperLaunchCommand()"
+                        ng-disabled="isGripperRaised()">
+                    LAUNCH
+                </button>
             </td>
             <td>
-                <button class="btn button-primary btn-lg btn-block" type="submit"
-                        ng-click="sendLedCommand(led.ledNumber, led.status)"
+                <button class="btn btn-primary btn-lg btn-block" type="submit"
+                        ng-click="sendLedCommand(led)"
                         ng-disabled="ledCommandForm.$invalid">
                     Send LED Command
                 </button>
@@ -159,6 +161,10 @@
                     <tr ng-repeat="cmd in latestMotorCommands">
                         <th>Angle</th>
                         <td>{{cmd.angle}}</td>
+                    </tr>
+                    <tr ng-repeat="cmd in latestMotorCommands">
+                        <th>Serpentine Mode</th>
+                        <td>{{cmd.serpentine}}</td>
                     </tr>
                     <tr ng-repeat="cmd in latestMotorCommands">
                         <th>Timestamp</th>
