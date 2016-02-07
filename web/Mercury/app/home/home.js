@@ -84,7 +84,7 @@ angular.module('Mercury.home', [
 
             $scope.sendMotorCommand = function (cmd) {
                 console.log('sending motor command (' +
-                    cmd.distance + 'cm, ' +
+                    cmd.distance + 'in, ' +
                     cmd.angle + 'deg, ' +
                     cmd.serpentine + ')');
                 firebase.child('motorCommands')

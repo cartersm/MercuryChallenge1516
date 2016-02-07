@@ -14,8 +14,8 @@
                 <form class="form-inline" name="motorCommandForm" novalidate>
                     <div class="form-group"
                          ng-class="{ 'has-error' : motorCommandForm.distance.$invalid }">
-                        <label>Distance (cm)
-                            <input type="number" value="0" min="-100" max="100" step="5" name="distance"
+                        <label>Distance (in)
+                            <input type="number" value="0" step="6" name="distance"
                                    ng-model="motor.distance" class="form-control" required autofocus>
                         </label>
                     </div>
