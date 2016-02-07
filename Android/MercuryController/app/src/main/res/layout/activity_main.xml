@@ -24,5 +24,19 @@
         android:text="@string/relaunch_video_call"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
+    <Button
+        android:id="@+id/stop_service_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stop_service"
+        android:layout_below="@+id/video_call_button"
+        android:layout_centerHorizontal="true" />
+    <Button
+        android:id="@+id/restart_service_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/restart_service"
+        android:layout_below="@+id/stop_service_button"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

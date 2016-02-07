@@ -16,4 +16,6 @@
     <string name="status">Status</string>
     <string name="relaunch_video_call">Relaunch Video Call</string>
     <string name="greeting">Welcome to the Rose-Hulman Mercury Robotics app</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="restart_service">Restart Service</string>
 </resources>
