@@ -1,3 +1,4 @@
+/* Borrowed from Angular/Firebase tutorial */
 .footer {
     padding-top: 40px;
     padding-bottom: 40px;
@@ -21,7 +22,7 @@ td, th {
 
 @media (min-width: 1200px) {
     .container {
-        width: 970px;
+        width: 1100px;
     }
 }
 
@@ -84,18 +85,6 @@ body {
     color: #999;
 }
 
-.my-jumbotron {
-    padding-bottom: 0;
-}
-
-.pointer {
-    cursor:pointer;
-}
-
-.has-margin {
-    margin: 5px;
-}
-
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
     /* Remove the padding we set earlier */
@@ -105,4 +94,29 @@ body {
         padding-right: 0;
         padding-left: 0;
     }
+}
+
+/* Custom CSS */
+.my-jumbotron {
+    padding-bottom: 0;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.has-margin {
+    margin: 5px;
+}
+
+.my-container {
+    padding-bottom: 50px;
+}
+
+ul.spaced-2 li {
+    line-height: 200%;
+}
+
+.striped {
+    background-color: #f0f0f0;
 }

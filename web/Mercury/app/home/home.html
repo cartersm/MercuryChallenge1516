@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container my-container">
     <div class="row">
         <h2>Command Center</h2>
 
@@ -148,69 +148,91 @@
         </div>
     </div>
 
-    <div class="row ">
+    <div class="row">
         <h2>Latest Commands</h2>
 
         <div class="col-md-4 table-bordered text-center">
             <h2 class="row">Motors</h2>
-            <table class="row table-striped">
-                <tr ng-repeat="cmd in latestMotorCommands">
-                    <th>Distance</th>
-                    <td>{{cmd.distance}}</td>
-                </tr>
-                <tr ng-repeat="cmd in latestMotorCommands">
-                    <th>Angle</th>
-                    <td>{{cmd.angle}}</td>
-                </tr>
-                <tr ng-repeat="cmd in latestMotorCommands">
-                    <th>Serpentine Mode</th>
-                    <td>{{cmd.serpentine}}</td>
-                </tr>
-                <tr ng-repeat="cmd in latestMotorCommands">
-                    <th>Timestamp</th>
-                    <td>{{cmd.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
-                </tr>
-            </table>
+            <ul class="row list-unstyled spaced-2">
+                <li class="col-sm-6 striped">
+                    <b>Distance</b>
+                </li>
+                <li class="col-sm-6 striped">
+                    {{latestMotorCommands[0].distance}}
+                </li>
+                <li class="col-sm-6">
+                    <b>Angle</b>
+                </li>
+                <li class="col-sm-6">
+                    {{latestMotorCommands[0].angle}}
+                </li>
+                <li class="col-sm-6 striped">
+                    <b>Serpentine Mode</b>
+                </li>
+                <li class="col-sm-6 striped">
+                    {{latestMotorCommands[0].serpentine}}
+                </li>
+                <li class="col-sm-6">
+                    <b>Timestamp</b>
+                </li>
+                <li class="col-sm-6">
+                    {{latestMotorCommands[0].timestamp | date:'yyyy-MM-dd HH:mm:ss'}}
+                </li>
+            </ul>
         </div>
 
         <div class="col-md-4 table-bordered text-center">
             <h2 classs="row">Gripper/Launcher</h2>
-            <table class="row table-striped">
-                <tr ng-repeat="cmd in latestGripperCommands">
-                    <th>Launch</th>
-                    <td>{{cmd.launch}}</td>
-                </tr>
-                <tr ng-repeat="cmd in latestGripperCommands">
-                    <th>Location</th>
-                    <td>{{cmd.location}}</td>
-                </tr>
-                <tr ng-repeat="cmd in latestGripperCommands">
-                    <th>Position</th>
-                    <td>{{cmd.position}}</td>
-                </tr>
-                <tr ng-repeat="cmd in latestGripperCommands">
-                    <th>Timestamp</th>
-                    <td>{{cmd.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
-                </tr>
-            </table>
+            <ul class="row list-unstyled spaced-2">
+                <li class="col-sm-6 striped">
+                    <b>Launch</b>
+                </li>
+                <li class="col-sm-6 striped">
+                    {{latestGripperCommands[0].launch}}
+                </li>
+                <li class="col-sm-6">
+                    <b>Location</b>
+                </li>
+                <li class="col-sm-6">
+                    {{latestGripperCommands[0].location}}
+                </li>
+                <li class="col-sm-6 striped">
+                    <b>Position</b>
+                </li>
+                <li class="col-sm-6 striped">
+                    {{latestGripperCommands[0].position}}
+                </li>
+                <li class="col-sm-6">
+                    <b>Timestamp</b>
+                </li>
+                <li class="col-sm-6">
+                    {{latestGripperCommands[0].timestamp | date:'yyyy-MM-dd HH:mm:ss'}}
+                </li>
+            </ul>
         </div>
 
         <div class="col-md-4 table-bordered text-center">
             <h2 class="row">LEDs</h2>
-            <table class="row table-striped">
-                <tr ng-repeat="cmd in latestLedCommands">
-                    <th>LED Number</th>
-                    <td>{{cmd.ledNumber}}</td>
-                </tr>
-                <tr ng-repeat="cmd in latestLedCommands">
-                    <th>Status</th>
-                    <td>{{cmd.status}}</td>
-                </tr>
-                <tr ng-repeat="cmd in latestLedCommands">
-                    <th>Timestamp</th>
-                    <td>{{cmd.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
-                </tr>
-            </table>
+            <ul class="row list-unstyled spaced-2">
+                <li class="col-sm-6 striped">
+                    <b>LED Number</b>
+                </li>
+                <li class="col-sm-6 striped">
+                    {{latestLedCommands[0].ledNumber}}
+                </li>
+                <li class="col-sm-6">
+                    <b>Status</b>
+                </li>
+                <li class="col-sm-6">
+                    {{latestLedCommands[0].status}}
+                </li>
+                <li class="col-sm-6 striped">
+                    <b>Timestamp</b>
+                </li>
+                <li class="col-sm-6 striped">
+                    {{latestLedCommands[0].timestamp | date:'yyyy-MM-dd HH:mm:ss'}}
+                </li>
+            </ul>
         </div>
     </div>
 </div>
