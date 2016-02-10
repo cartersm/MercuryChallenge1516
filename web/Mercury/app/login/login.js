@@ -2,7 +2,7 @@
 
 angular.module('Mercury.login', [
     'ngRoute',
-    "firebase"
+    'firebase'
 ])
     .config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/login', {
@@ -11,41 +11,44 @@ angular.module('Mercury.login', [
         });
     }])
     .controller('LoginCtrl', [
-        "$scope",
-        "$firebaseAuth",
-        "$location",
+        '$scope',
+        '$firebaseAuth',
+        '$location',
         '$window',
-        "AuthService",
-        function ($scope, $firebaseAuth, $location, $window, AuthService) {
+        'Auth',
+        function ($scope, $firebaseAuth, $location, $window, Auth) {
             $scope.signinFailed = false;
-            AuthService.checkAuth(function () {
+            Auth.checkAuth(function () {
                 $window.location.reload();
                 $location.path('/home');
             });
 
-            var authObj = AuthService.getAuthObject();
+            $scope.user = {};
 
             $scope.SignIn = function (event) {
                 event.preventDefault();
                 var username = $scope.user.email;
                 var password = $scope.user.password;
 
-                authObj.$authWithPassword({
-                    email: username,
-                    password: password
-                }).then(function (authData) {
-                    AuthService.checkAuth(function () {
-                        $scope.signinFailed = false;
-                        AuthService.setUser(authData.password.email);
-                        $('#page-header').removeClass('hidden');
-                        $('#nav-bar').removeClass('hidden');
-                        $window.location.reload();
-                        $location.path('/home');
+                Auth.auth(username, password,
+                    function (err, authData) {
+                        if (err) {
+                            console.error('Authentication failed: ', err);
+                            $scope.signinFailed = true;
+                            return;
+                        }
+                        Auth.checkAuth(function () {
+                            $scope.signinFailed = false;
+                            Auth.setUser(authData.password.email);
+                            $('#page-header').removeClass('hidden');
+                            $('#nav-bar').removeClass('hidden');
+                            $window.location.reload();
+                            $location.path('/employees');
+                        }, function (error) {
+                            console.warn(error);
+                            $scope.isEmployee = false;
+                        });
                     });
-                }).catch(function (error) {
-                    console.error("Authentication failed: ", error);
-                    $scope.signinFailed = true;
-                });
-            }
+            };
         }
     ]);

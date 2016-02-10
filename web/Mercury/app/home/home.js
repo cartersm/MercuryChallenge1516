@@ -13,14 +13,30 @@ angular.module('Mercury.home', [
         '$firebaseAuth',
         '$firebaseArray',
         '$location',
-        'AuthService',
-        function ($scope, $firebaseAuth, $firebaseArray, $location, AuthService) {
-            AuthService.checkAuth(function () {
-                if (!AuthService.hasAuth()) {
+        'Auth',
+        function ($scope, $firebaseAuth, $firebaseArray, $location, Auth) {
+            Auth.checkAuth(function () {
+                if (!Auth.hasAuth()) {
                     $location.path('/login');
                 }
             });
-            $scope.username = AuthService.getUser();
+            $scope.username = Auth.getUser();
+            $scope.motor = {
+                distance: 0,
+                angle: 0,
+                serpentine: false
+            };
+
+            $scope.gripper = {
+                launch: false,
+                location: '',
+                position: ''
+            };
+
+            $scope.led = {
+                ledNumber: 0,
+                status: ''
+            };
 
             var firebase = new Firebase('https://mercury-robotics-16.firebaseio.com');
             var motorQuery = firebase.child('motorCommands')
@@ -30,11 +46,6 @@ angular.module('Mercury.home', [
                 .$loaded()
                 .then(function (data) {
                     $scope.latestMotorCommands = data;
-                    $scope.motor = {
-                        distance: 0,
-                        angle: 0,
-                        serpentine: false
-                    };
                 });
 
             var gripperQuery = firebase.child('gripperLauncherCommands')
@@ -44,11 +55,6 @@ angular.module('Mercury.home', [
                 .$loaded()
                 .then(function (data) {
                     $scope.latestGripperCommands = data;
-                    $scope.gripper = {
-                        launch: false,
-                        location: '',
-                        position: ''
-                    };
                 });
 
             var ledQuery = firebase.child('ledCommands')
@@ -58,10 +64,6 @@ angular.module('Mercury.home', [
                 .$loaded()
                 .then(function (data) {
                     $scope.latestLedCommands = data;
-                    $scope.led = {
-                        ledNumber: 0,
-                        status: ''
-                    };
                 });
 
             /* Sending Commands */
@@ -137,7 +139,8 @@ angular.module('Mercury.home', [
             };
 
             $scope.isGripperRaised = function () {
-                return $scope.latestGripperCommands[0].location.toLowerCase() === 'raised';
+                return $scope.latestGripperCommands &&
+                    $scope.latestGripperCommands[0].location.toLowerCase() === 'raised';
             };
 
             $scope.isMotorCommandInvalid = function (motor) {

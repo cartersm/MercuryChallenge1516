@@ -28,7 +28,7 @@
 <body>
 
 <!-- Navbar -->
-<div id="page-header-and-nav" ng-controller="RootCtrl" ng-show="hasAuth()">
+<div id="page-header-and-nav" ng-controller="NavCtrl" ng-show="hasAuth()">
     <div id="nav-bar" class="blog-masthead hidden">
         <div class="container">
             <nav class="blog-nav">
@@ -67,7 +67,8 @@
 <script src="login/login.js"></script>
 <script src="home/home.js"></script>
 <script src="history/history.js"></script>
-<script src="services.js"></script>
+<script src="core/auth/auth.js"></script>
+<script src="core/nav/nav.js"></script>
 
 </body>
 </html>

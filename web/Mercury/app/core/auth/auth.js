@@ -1,6 +1,6 @@
 'use strict';
-angular.module('Mercury.services', [])
-    .service('AuthService', [
+angular.module('Mercury')
+    .service('Auth', [
         '$firebaseAuth',
         '$window',
         '$firebaseObject',
@@ -12,24 +12,30 @@ angular.module('Mercury.services', [])
             var firebase = new Firebase('https://mercury-robotics-16.firebaseio.com');
             var authObj = $firebaseAuth(firebase);
 
+            var self = this;
+
             this.checkAuth = function (onSuccess, onFailure) {
                 var auth = authObj.$getAuth();
-                if (auth === null) {
+                if (auth === null || auth.expires <= Date.now() / 1000) {
+                    if (auth) {
+                        // The auth has expired
+                        self.logoutUser();
+                    }
                     // We're not logged in
                     $location.path('/login');
-                    if (typeof onFailure === 'function') onFailure('not logged in');
+                    if (onFailure) onFailure('not logged in');
                 } else {
-                    if (typeof onSuccess === 'function') onSuccess();
+                    if (onSuccess) onSuccess();
                 }
-            }.bind(this);
+            };
 
             this.getUser = function () {
                 return user;
-            }.bind(this);
+            };
 
             this.setUser = function (value) {
                 user = value;
-            }.bind(this);
+            };
 
             this.logoutUser = function () {
                 authObj.$unauth();
@@ -38,19 +44,26 @@ angular.module('Mercury.services', [])
                 console.log('Logout complete');
                 // Force reload to hide the navbar
                 $location.path('/login');
-            }.bind(this);
+            };
 
             var auth = authObj.$getAuth();
             this.checkAuth(function () {
                 user = auth.password.email;
             });
 
-            this.getAuthObject = function () {
-                return authObj;
+            this.auth = function (username, password, callback) {
+                authObj.$authWithPassword({
+                    email: username,
+                    password: password
+                }).then(function (authData) {
+                    callback(null, authData);
+                }).catch(function (error) {
+                    callback(error, null);
+                });
             };
 
             this.hasAuth = function () {
-                return authObj.$getAuth() !== null;
-            }
+                return authObj.$getAuth() !== null && auth.expires > Date.now() / 1000;
+            };
         }
     ]);

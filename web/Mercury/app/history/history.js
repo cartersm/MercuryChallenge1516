@@ -13,17 +13,17 @@ angular.module('Mercury.history', [
         '$firebaseAuth',
         '$firebaseArray',
         '$location',
-        'AuthService',
-        function ($scope, $firebaseAuth, $firebaseArray, $location, AuthService) {
+        'Auth',
+        function ($scope, $firebaseAuth, $firebaseArray, $location, Auth) {
             var firebase = new Firebase('https://mercury-robotics-16.firebaseio.com');
-            AuthService.checkAuth(function () {
-                if (!AuthService.hasAuth()) {
+            Auth.checkAuth(function () {
+                if (!Auth.hasAuth()) {
                     $location.path('/login');
                 }
             });
 
             $scope.logout = function () {
-                AuthService.logoutUser();
+                Auth.logoutUser();
             };
 
             var motorQuery = firebase.child('motorCommands')
