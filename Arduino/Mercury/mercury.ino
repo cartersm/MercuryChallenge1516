@@ -151,24 +151,26 @@ void setup() {
 }
 void loop() {
   if (acc.isConnected()) {
-//    digitalWrite(2, HIGH);
-//    delay(500);
-//    digitalWrite(2, LOW);
-//    delay(500);
+    //    digitalWrite(2, HIGH);
+    //    delay(500);
+    //    digitalWrite(2, LOW);
+    //    delay(500);
     int len = acc.read(rxBuf, sizeof(rxBuf), 1);
     if (len > 0) { // we've recevied a message
       // LED will flash
-//      digitalWrite(3, HIGH);
-//      delay(500);
-//      digitalWrite(3, LOW);
-//      delay(500);
+      //      digitalWrite(3, HIGH);
+      //      delay(500);
+      //      digitalWrite(3, LOW);
+      //      delay(500);
       ///////////////////
       rxBuf[len - 1] = '\n';
       inputString = String(rxBuf);
 
+      Serial.println(inputString);
+
       if (inputString.equals("MOTORS 0 0 false")) {
         CurrentState = STOP;
-      } 
+      }
       else if (inputString.startsWith("MOTORS")) {           // Obtain distance the robot needs to travel
         int distanceStartIndex =  inputString.indexOf(" ") + 1;
         int distanceEndIndex = inputString.indexOf(" ", distanceStartIndex);
@@ -219,9 +221,6 @@ void loop() {
         driveMotor3();
         driveMotor4();
 
-        Serial.print("Encoder 1: ");
-        Serial.println(encoder1Pos);
-
         if (abs(encoder1Pos) > abs(counts1) &&
             abs(encoder2Pos) > abs(counts2) &&
             abs(encoder3Pos) > abs(counts3) &&
@@ -230,6 +229,12 @@ void loop() {
         }
         break;
       case TURNING:
+        countsangle1 = angleToCounts1(angle);
+        countsangle2 = angleToCounts2(angle);
+        countsangle3 = angleToCounts3(angle);
+        countsangle4 = angleToCounts4(angle);
+
+        turnRobot(angle);
 
         break;
       case SERPINTINE_MODE:
@@ -282,20 +287,20 @@ void loop() {
 }
 ////////////////////// Angle degrees to encoder counts //////////////////////
 int angleToCounts1(int angle) {
-  int counts = (angle / 360) * 8893;
-  return counts;
+  int counts = (angle / 360.0) * 8893;
+  return (int) counts;
 }
 int angleToCounts2(int angle) {
-  int counts = (angle / 360) * 7449;
-  return counts;
+  int counts = (angle / 360.0) * 7449;
+  return (int) counts;
 }
 int angleToCounts3(int angle) {
-  int counts = (angle / 360) * 7293;
-  return counts;
+  int counts = (angle / 360.0) * 7293;
+  return (int) counts;
 }
 int angleToCounts4(int angle) {
-  int counts = (angle / 360) * 9270;
-  return counts;
+  int counts = (angle / 360.0) * 9270;
+  return (int) counts;
 }
 ////////////////////// Distance inch to encoder counts ///////////////////////
 int DistanceToCounts1(int distance) {
@@ -397,7 +402,7 @@ void driveMotor4() {
 }
 /////////////////////// Turn robot ////////////////////////////////////
 void turnRobot(int angle) {
-  isTurning = true ;
+  isTurning = true;
   if (angle > 0) {                     // Counter -- Clockwise
     digitalWrite(MOTOR1_PHASE, 1);  // forward
     digitalWrite(MOTOR3_PHASE, 1);  // forward
@@ -411,14 +416,23 @@ void turnRobot(int angle) {
     digitalWrite(MOTOR4_PHASE, 1);  // forward
   }
 
-  if ( (abs(countsangle1) < abs (encoder1Pos)) && (abs(countsangle2) < abs (encoder2Pos)) && (abs(countsangle3) < abs (encoder3Pos)) && (abs(countsangle4) < abs (encoder4Pos))) {
+  Serial.print("countsangle1: ");
+  Serial.println(countsangle1);
+
+  Serial.print("encoder1Pos: ");
+  Serial.println(encoder1Pos);
+
+  if (abs(countsangle1) > abs (encoder1Pos) &&
+      abs(countsangle2) > abs (encoder2Pos) &&
+      abs(countsangle3) > abs (encoder3Pos) &&
+      abs(countsangle4) > abs (encoder4Pos)) {
     analogWrite(MOTOR1_PWM, 200);
     analogWrite(MOTOR2_PWM, 200);
     analogWrite(MOTOR3_PWM, 200);
     analogWrite(MOTOR4_PWM, 200);
   }
   else {
-    stopAllMotors();
+    CurrentState = STOP;
   }
 }
 //////////////////// Stop motors ///////////////////////////////////////////
