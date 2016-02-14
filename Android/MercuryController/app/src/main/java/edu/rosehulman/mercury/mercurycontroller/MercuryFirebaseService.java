@@ -16,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
+import android.os.Process;
 import android.support.annotation.Nullable;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -30,20 +31,22 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Random;
 
 /**
  * Adapted from <a href="https://github.com/Rose-Hulman-ROBO4xx/1314-Mercury/blob/master/GCMADKservice/src/edu/rosehulman/gcmadkservice/GCMADKservice.java">
  * This Gist
- * </a>, which is in turn adapted from {@link edu.rosehulman.me435.AccessoryActivity}.
+ * </a>, which is in turn adapted from edu.rosehulman.me435.AccessoryActivity.
  */
 public class MercuryFirebaseService extends Service {
 
     public static final String EMAIL = "cartersm@rose-hulman.edu";
     public static final String PASSWORD = "RoseHulmanMercury2016";
     public static final String CONNECTION_CHANGED_MSG = "CONNECTION_CHANGED_MSG";
+    private static final String MOTOR_FORMAT_STRING = "MOTORS %d %d %b";
+    private static final String GRIPPER_FORMAT_STRING = "GRIPPER %s %s %s";
     private static final String LED_FORMAT_STRING = "LED %d %s";
-    private static final int ID = new Random().nextInt();
+    // "MERC" - non-random so we use the same notification even if the service restarts
+    private static final int NOTIF_ID = 0x4d657263;
     private long mBirthTime;
     private Firebase mFirebaseRef;
 
@@ -59,6 +62,10 @@ public class MercuryFirebaseService extends Service {
     private Handler mHandler = new Handler();
     private final BroadcastReceiver mUsbReceiver = new UsbReceiver();
     private boolean mIsRunning = false;
+    private MotorCommandListener mMotorCommandListener;
+    private GripperCommandListener mGripperCommandListener;
+    private LedCommandListener mLedCommandListener;
+    private ConnectivityReceiver mConnectivityReceiver;
 
     @Nullable
     @Override
@@ -72,10 +79,9 @@ public class MercuryFirebaseService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        mBirthTime = System.currentTimeMillis();
         // Firebase stuff
         Firebase.setAndroidContext(getApplicationContext());
-
-        mBirthTime = System.currentTimeMillis();
 
         mFirebaseRef = new Firebase("https://mercury-robotics-16.firebaseio.com/");
         if (mFirebaseRef.getAuth() == null) {
@@ -88,14 +94,17 @@ public class MercuryFirebaseService extends Service {
             Log.d(MainActivity.TAG, "Already logged in");
             postNotification("Successfully logged in!");
         }
-        mFirebaseRef.child("motorCommands").addChildEventListener(new MotorCommandListener());
-        mFirebaseRef.child("gripperLauncherCommands").addChildEventListener(new GripperCommandListener());
-        mFirebaseRef.child("ledCommands").addChildEventListener(new LedCommandListener());
+
+        mMotorCommandListener = (MotorCommandListener) mFirebaseRef.child("motorCommands")
+                .addChildEventListener(new MotorCommandListener());
+        mGripperCommandListener = (GripperCommandListener) mFirebaseRef.child("gripperLauncherCommands")
+                .addChildEventListener(new GripperCommandListener());
+        mLedCommandListener = (LedCommandListener) mFirebaseRef.child("ledCommands")
+                .addChildEventListener(new LedCommandListener());
 
         // Arduino Stuff
         mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(
-                ACTION_USB_PERMISSION), 0);
+        mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
 
         IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
@@ -104,7 +113,8 @@ public class MercuryFirebaseService extends Service {
         // Connection watcher
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        registerReceiver(new ConnectivityReceiver(), intentFilter);
+        mConnectivityReceiver = new ConnectivityReceiver();
+        registerReceiver(mConnectivityReceiver, intentFilter);
     }
 
     private void postNotification(String notifString) {
@@ -127,7 +137,7 @@ public class MercuryFirebaseService extends Service {
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         Notification notification = builder.build();
         notification.flags |= Notification.FLAG_NO_CLEAR;
-        notificationManager.notify(ID, notification);
+        notificationManager.notify(NOTIF_ID, notification);
     }
 
     private void auth() {
@@ -150,9 +160,19 @@ public class MercuryFirebaseService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mFirebaseRef.child("motorCommands").removeEventListener(mMotorCommandListener);
+        mFirebaseRef.child("gripperLauncherCommands").removeEventListener(mGripperCommandListener);
+        mFirebaseRef.child("ledCommands").removeEventListener(mLedCommandListener);
+
         mFirebaseRef.unauth();
         closeAccessory();
         unregisterReceiver(mUsbReceiver);
+        unregisterReceiver(mConnectivityReceiver);
+        Log.d(MainActivity.TAG, "Service destroyed");
+        postNotification("Service Destroyed");
+
+        // FIXME: Force killing the service to circumvent Firebase not listening
+        Process.killProcess(Process.myPid());
     }
 
     /* AccessoryActivity methods */
@@ -254,12 +274,12 @@ public class MercuryFirebaseService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // intent from ConnectivityReceiver
-        Log.d(MainActivity.TAG, "made it here");
+//        Log.d(MainActivity.TAG, "made it here");
         String message = intent.getStringExtra(CONNECTION_CHANGED_MSG);
         if (message != null) {
             Log.d(MainActivity.TAG, "message is \"" + message + "\"");
             sendCommand(message);
-            return START_STICKY;
+            return START_REDELIVER_INTENT;
         }
 
         // first-time startup
@@ -287,7 +307,7 @@ public class MercuryFirebaseService extends Service {
             Log.d(MainActivity.TAG, "accessory is null.");
             postNotification("Accessory is null");
         }
-        return START_STICKY;
+        return START_REDELIVER_INTENT;
     }
 
     /* Firebase Listeners */
@@ -297,6 +317,7 @@ public class MercuryFirebaseService extends Service {
             MotorCommand cmd = dataSnapshot.getValue(MotorCommand.class);
             int distance = cmd.getDistance();
             int angle = cmd.getAngle();
+            boolean isSerpentine = cmd.isSerpentine();
             long timestamp = cmd.getTimestamp();
 
             if (timestamp < mBirthTime) {
@@ -304,8 +325,7 @@ public class MercuryFirebaseService extends Service {
                 Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-            String command = String.format(LED_FORMAT_STRING, distance, angle);
-//            Toast.makeText(MainActivity.this, "Sending command \"" + command + "\"", Toast.LENGTH_SHORT).show();
+            String command = String.format(MOTOR_FORMAT_STRING, distance, angle, isSerpentine);
             Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
             sendCommand(command);
         }
@@ -335,8 +355,9 @@ public class MercuryFirebaseService extends Service {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             GripperLauncherCommand cmd = dataSnapshot.getValue(GripperLauncherCommand.class);
-            int angle = cmd.getAngle();
+            boolean launch = cmd.getLaunch();
             String position = cmd.getPosition();
+            String location = cmd.getLocation();
             long timestamp = cmd.getTimestamp();
 
             if (timestamp < mBirthTime) {
@@ -344,8 +365,7 @@ public class MercuryFirebaseService extends Service {
                 Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-            String command = String.format(LED_FORMAT_STRING, angle, position.toUpperCase());
-//            Toast.makeText(MainActivity.this, "Sending command \"" + command + "\"", Toast.LENGTH_SHORT).show();
+            String command = String.format(GRIPPER_FORMAT_STRING, launch, location, position.toUpperCase());
             Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
             sendCommand(command);
         }

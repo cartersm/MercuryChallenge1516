@@ -1,7 +1,8 @@
 package edu.rosehulman.mercury.mercurycontroller;
 
 public class GripperLauncherCommand {
-    private int angle;
+    private boolean launch;
+    private String location;
     private String position;
     private long timestamp;
 
@@ -9,14 +10,20 @@ public class GripperLauncherCommand {
 
     }
 
-    public GripperLauncherCommand(int angle, String position, long timestamp) {
-        this.angle = angle;
+    public GripperLauncherCommand(boolean launch, String location, String position, long timestamp) {
+        this.launch = launch;
+        this.location = location;
         this.position = position;
         this.timestamp = timestamp;
     }
 
-    public int getAngle() {
-        return angle;
+
+    public boolean getLaunch() {
+        return launch;
+    }
+
+    public String getLocation() {
+        return location;
     }
 
     public String getPosition() {

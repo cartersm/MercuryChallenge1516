@@ -27,15 +27,27 @@
 </head>
 <body>
 
-<div class="blog-masthead">
-    <div class="container">
-        <nav class="blog-nav hidden" id="primary-navbar" ng-controller="BlogNavCtrl" ng-show="hasAuth()">
-            <a ng-class="{ active: isActive('/home') }" class="blog-nav-item active" href="#/home">Command Center</a>
-            <a ng-class="{ active: isActive('/history') }" class="blog-nav-item" href="#/history">Command History</a>
-            <a class="blog-nav-item" style="cursor:pointer;"
-               href="skype:rosemercury16?call&video=true">Open Video Call</a>
-            <a class="blog-nav-item" style="cursor:pointer;" ng-click="logout()">Logout</a>
-        </nav>
+<!-- Navbar -->
+<div id="page-header-and-nav" ng-controller="NavCtrl" ng-show="hasAuth()">
+    <div id="nav-bar" class="blog-masthead hidden">
+        <div class="container">
+            <nav class="blog-nav">
+                <a ng-class="{ active: isActive('/home') }" class="blog-nav-item active" href="#/home"
+                   id="default-link">
+                    Home
+                </a>
+                <a ng-class="{ active: isActive('/history') }" class="blog-nav-item" href="#/history">
+                    History
+                </a>
+                <a class="blog-nav-item pointer" ng-click="logout()">Logout</a>
+            </nav>
+        </div>
+    </div>
+    <div id="page-header" class="page-header container hidden">
+        <div class="page-header">
+            <h1>Rose-Hulman Mercury Robotics</h1>
+            <h4 class="blog-description">Signed in as <b>{{username}}</b></h4>
+        </div>
     </div>
 </div>
 
@@ -55,6 +67,8 @@
 <script src="login/login.js"></script>
 <script src="home/home.js"></script>
 <script src="history/history.js"></script>
+<script src="core/auth/auth.js"></script>
+<script src="core/nav/nav.js"></script>
 
 </body>
 </html>

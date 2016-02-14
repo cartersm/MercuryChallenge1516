@@ -1,6 +1,6 @@
 angular.module('Mercury.home', [
     'ngRoute',
-    "firebase"
+    'firebase'
 ])
     .config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/home', {
@@ -8,20 +8,39 @@ angular.module('Mercury.home', [
             controller: 'HomeCtrl'
         });
     }])
-    .controller('HomeCtrl', ["$scope", "$firebaseAuth", "$firebaseArray", "$location", "CommonProp",
-        function ($scope, $firebaseAuth, $firebaseArray, $location, CommonProp) {
-            var firebase = new Firebase("https://mercury-robotics-16.firebaseio.com");
-            var authObj = $firebaseAuth(firebase);
-            if (authObj.$getAuth() === null) {
-                $location.path("login");
-            }
-            if (CommonProp.getUser() == "") {
-                CommonProp.setUser(authObj.$getAuth().password.email);
-            }
-            $scope.username = CommonProp.getUser();
+    .controller('HomeCtrl', [
+        '$scope',
+        '$firebaseAuth',
+        '$firebaseArray',
+        '$location',
+        'Auth',
+        function ($scope, $firebaseAuth, $firebaseArray, $location, Auth) {
+            Auth.checkAuth(function () {
+                if (!Auth.hasAuth()) {
+                    $location.path('/login');
+                }
+            });
+            $scope.username = Auth.getUser();
+            $scope.motor = {
+                distance: 0,
+                angle: 0,
+                serpentine: false
+            };
 
-            var motorQuery = firebase.child("motorCommands")
-                .orderByChild("timestamp")
+            $scope.gripper = {
+                launch: false,
+                location: '',
+                position: ''
+            };
+
+            $scope.led = {
+                ledNumber: 0,
+                status: ''
+            };
+
+            var firebase = new Firebase('https://mercury-robotics-16.firebaseio.com');
+            var motorQuery = firebase.child('motorCommands')
+                .orderByChild('timestamp')
                 .limitToLast(1);
             $firebaseArray(motorQuery)
                 .$loaded()
@@ -29,8 +48,8 @@ angular.module('Mercury.home', [
                     $scope.latestMotorCommands = data;
                 });
 
-            var gripperQuery = firebase.child("gripperLauncherCommands")
-                .orderByChild("timestamp")
+            var gripperQuery = firebase.child('gripperLauncherCommands')
+                .orderByChild('timestamp')
                 .limitToLast(1);
             $firebaseArray(gripperQuery)
                 .$loaded()
@@ -38,8 +57,8 @@ angular.module('Mercury.home', [
                     $scope.latestGripperCommands = data;
                 });
 
-            var ledQuery = firebase.child("ledCommands")
-                .orderByChild("timestamp")
+            var ledQuery = firebase.child('ledCommands')
+                .orderByChild('timestamp')
                 .limitToLast(1);
             $firebaseArray(ledQuery)
                 .$loaded()
@@ -47,67 +66,98 @@ angular.module('Mercury.home', [
                     $scope.latestLedCommands = data;
                 });
 
-            $scope.status = "off";
-
             /* Sending Commands */
             $scope.sendStopCommand = function () {
-                console.log("sending stop command");
+                console.log('sending stop command');
                 firebase
-                    .child("motorCommands")
+                    .child('motorCommands')
                     .push({
                         distance: 0,
                         angle: 0,
+                        serpentine: false,
                         timestamp: new Date().getTime()
                     });
+                $scope.motor = {
+                    distance: 0,
+                    angle: 0,
+                    serpentine: false
+                };
             };
 
-            $scope.sendMotorCommand = function (distance, angle) {
-                console.log("sending motor command (" + distance + "cm, " + angle + "deg)");
-                firebase.child("motorCommands")
+            $scope.sendMotorCommand = function (cmd) {
+                console.log('sending motor command (' +
+                    cmd.distance + 'in, ' +
+                    cmd.angle + ' deg, ' +
+                    cmd.serpentine + ')');
+                firebase.child('motorCommands')
                     .push({
-                        distance: distance,
-                        angle: angle,
+                        distance: cmd.distance,
+                        angle: cmd.angle,
+                        serpentine: cmd.serpentine,
                         timestamp: new Date().getTime()
                     });
+                $scope.motor = {
+                    distance: 0,
+                    angle: 0,
+                    serpentine: false
+                };
             };
 
-            $scope.sendGripperCloseCommand = function () {
-                console.log("sending gripper close command");
-                firebase.child("gripperLauncherCommands")
+            $scope.sendGripperCommand = function (cmd) {
+                console.log('sending gripper command (' +
+                    cmd.launch + ', ' +
+                    cmd.location + ', ' +
+                    cmd.position + ')');
+                firebase.child('gripperLauncherCommands')
                     .push({
-                        angle: $scope.latestGripperCommands[0].angle,
-                        position: "closed",
+                        launch: false,
+                        location: location,
+                        position: position,
                         timestamp: new Date().getTime()
                     });
+                $scope.gripper = {
+                    launch: false,
+                    location: '',
+                    position: ''
+                };
             };
 
-            $scope.sendGripperOpenCommand = function () {
-                console.log("sending gripper open command");
-                firebase.child("gripperLauncherCommands")
+            $scope.sendGripperLaunchCommand = function () {
+                console.log('sending gripper launch command');
+                firebase.child('gripperLauncherCommands')
                     .push({
-                        angle: $scope.latestGripperCommands[0].angle,
-                        position: "open",
-                        timestamp: new Date().getTime()
-                    });
-            };
-
-            $scope.sendGripperAngleCommand = function (degrees) {
-                console.log("sending angle command (" + degrees + ")");
-                firebase.child("gripperLauncherCommands")
-                    .push({
-                        angle: degrees,
+                        launch: true,
+                        location: $scope.latestGripperCommands[0].location,
                         position: $scope.latestGripperCommands[0].position,
                         timestamp: new Date().getTime()
                     });
+                $scope.gripper = {
+                    launch: false,
+                    location: '',
+                    position: ''
+                };
             };
 
-            $scope.sendLedCommand = function (ledNumber, status) {
-                console.log("sending LED command (" + ledNumber + ", " + status + ")");
-                firebase.child("ledCommands")
+            $scope.isGripperRaised = function () {
+                return $scope.latestGripperCommands &&
+                    $scope.latestGripperCommands[0].location.toLowerCase() === 'raised';
+            };
+
+            $scope.isMotorCommandInvalid = function (motor) {
+                return (!motor.distance && motor.distance !== 0) || (!motor.angle && motor.angle !== 0);
+            };
+
+            $scope.sendLedCommand = function (cmd) {
+                console.log('sending LED command (' + cmd.ledNumber + ', ' + cmd.status + ')');
+                firebase.child('ledCommands')
                     .push({
-                        ledNumber: ledNumber,
-                        status: status,
+                        ledNumber: cmd.ledNumber,
+                        status: cmd.status,
                         timestamp: new Date().getTime()
                     });
+                $scope.led = {
+                    ledNumber: 0,
+                    status: ''
+                };
             };
         }]);
