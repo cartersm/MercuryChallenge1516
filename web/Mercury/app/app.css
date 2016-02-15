@@ -117,6 +117,10 @@ ul.spaced-2 li {
     line-height: 200%;
 }
 
+ul.spaced-2 {
+    margin-bottom: 0px;
+}
+
 .striped {
     background-color: #f0f0f0;
 }
