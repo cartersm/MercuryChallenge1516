@@ -6,27 +6,38 @@
             <div class="has-margin">
                 <h2 class="row text-center">Motors</h2>
 
-                <form class="row form-inline" name="motorCommandForm" novalidate>
+                <form class="row form-horizontal" name="motorCommandForm" novalidate>
                     <div class="form-group"
                          ng-class="{ 'has-error' : motorCommandForm.distance.$invalid }">
-                        <label>Distance (in)
-                            <input type="number" value="0" min="-540" max="540" step="6" name="distance"
-                                   ng-model="motor.distance" class="form-control" required autofocus>
+                        <label class="control-label col-sm-6" for="motor_distance">
+                            Distance (in):
                         </label>
+
+                        <div class="col-sm-3">
+                            <input class="form-control" type="number" value="0" min="-540" max="540" step="6"
+                                   id="motor_distance" name="distance" ng-model="motor.distance" required autofocus>
+                        </div>
                     </div>
-                    </br>
-                    <div class="form-group" ng-class="{ 'has-error' : motorCommandForm.angle.$invalid }">
-                        <label>Angle (degrees)
-                            <input type="number" value="0" min="-180" max="180" step="15" name="angle"
-                                   ng-model="motor.angle" class="form-control" required>
-                        </label>
-                    </div>
-                    </br>
                     <div class="form-group"
-                         ng-class="{ 'has-error' : motorCommandForm.serpentine.$invalid }">
-                        <label>Serpentine Mode
-                            <input type="checkbox" name="serpentine" ng-model="motor.serpentine" class="form-control">
+                         ng-class="{ 'has-error' : motorCommandForm.angle.$invalid }">
+                        <label class="control-label col-sm-6" for="motor_angle">
+                            Angle (degrees):
                         </label>
+
+                        <div class="col-sm-3">
+                            <input class="form-control" type="number" value="0" min="-180" max="180" step="10"
+                                   id="motor_angle" name="angle" ng-model="motor.angle" required>
+                        </div>
+                    </div>
+                    <div class="form-group" ng-class="{ 'has-error' : motorCommandForm.serpentine.$invalid }">
+                        <label class="control-label col-sm-6" for="motor_serpentine">
+                            Serpentine Mode:
+                        </label>
+
+                        <div class="col-sm-3 col-xs-6">
+                            <input type="checkbox" id="motor_serpentine" name="serpentine"
+                                   ng-model="motor.serpentine" style="width: 20px; height: 20px;">
+                        </div>
                     </div>
                 </form>
 
@@ -43,16 +54,16 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 table-bordered text-center">
+        <div class="col-md-4 table-bordered">
             <div class="has-margin">
                 <!-- Gripper -->
                 <h2 class="row text-center">Gripper/Launcher</h2>
 
-                <form class="row form-inline" name="gripperCommandForm" novalidate>
+                <form class="row form-horizontal" name="gripperCommandForm" novalidate>
                     <div class="form-group" ng-class="{ 'has-error' : gripperCommandForm.location.$invalid}">
-                        <label>Drawbridge Location</label>
+                        <label class="control-label col-sm-6">Drawbridge Location</label>
 
-                        <div class="btn-group" data-toggle="buttons">
+                        <div class="col-sm-3" data-toggle="buttons">
                             <div class="radio">
                                 <label>
                                     <input type="radio" name="location" ng-model="gripper.location"
@@ -69,11 +80,10 @@
                             </div>
                         </div>
                     </div>
-                    </br>
                     <div class="form-group" ng-class="{ 'has-error' : gripperCommandForm.position.$invalid}">
-                        <label>Gripper Position</label>
+                        <label class="control-label col-sm-6">Gripper Position</label>
 
-                        <div class="btn-group" data-toggle="buttons">
+                        <div class="col-sm-3" data-toggle="buttons">
                             <div class="radio">
                                 <label>
                                     <input type="radio" name="position" ng-model="gripper.position"
@@ -105,23 +115,24 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 table-bordered text-center">
+        <div class="col-md-4 table-bordered">
             <div class="has-margin">
                 <!-- LEDs -->
                 <h2 class="row text-center">LEDs</h2>
 
-                <form class="row form-inline" name="ledCommandForm" novalidate>
+                <form class="row form-horizontal" name="ledCommandForm" novalidate>
                     <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.ledNumber.$invalid}">
-                        <label>LedNumber
-                            <input type="number" min="1" max="6" step="1" value="3" name="ledNumber"
-                                   ng-model="led.ledNumber" class="form-control" required>
-                        </label>
-                    </div>
-                    </br>
-                    <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.status.$invalid}">
-                        <label>LED Status</label>
+                        <label class="control-label col-sm-6" for="led_number">Led Number</label>
 
-                        <div class="btn-group" data-toggle="buttons">
+                        <div class="col-sm-3">
+                            <input class="form-control" type="number" min="1" max="6" step="1" value="3"
+                                   id="led_number" name="ledNumber" ng-model="led.ledNumber" required>
+                        </div>
+                    </div>
+                    <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.status.$invalid}">
+                        <label class="control-label col-sm-6">LED Status</label>
+
+                        <div class="btn-group col-sm-3" data-toggle="buttons">
                             <div class="radio">
                                 <label>
                                     <input type="radio" name="status" ng-model="led.status" value="on" required>
