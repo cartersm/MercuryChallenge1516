@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="semitransparent">#80808080</color>
+    <color name="mercury_orange">#ffd95900</color>
 </resources>

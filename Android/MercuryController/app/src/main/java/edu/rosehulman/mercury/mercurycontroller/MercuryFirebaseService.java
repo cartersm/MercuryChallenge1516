@@ -79,6 +79,8 @@ public class MercuryFirebaseService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        Log.d(MainActivity.TAG, "In onCreate()");
+
         mBirthTime = System.currentTimeMillis();
         // Firebase stuff
         Firebase.setAndroidContext(getApplicationContext());
@@ -119,9 +121,8 @@ public class MercuryFirebaseService extends Service {
 
     private void postNotification(String notifString) {
         Context context = getApplicationContext();
-        int icon = R.mipmap.ic_launcher;
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-        builder.setSmallIcon(icon);
+        setIcon(builder);
         builder.setContentTitle("Mercury");
         builder.setContentText(notifString);
 
@@ -138,6 +139,14 @@ public class MercuryFirebaseService extends Service {
         Notification notification = builder.build();
         notification.flags |= Notification.FLAG_NO_CLEAR;
         notificationManager.notify(NOTIF_ID, notification);
+    }
+
+    private void setIcon(NotificationCompat.Builder builder) {
+        boolean useWhiteIcon = (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP);
+        builder.setSmallIcon(useWhiteIcon ? R.drawable.ic_notif_silhouette : R.mipmap.ic_launcher);
+        if (useWhiteIcon) {
+            builder.setColor(getResources().getColor(R.color.mercury_orange));
+        }
     }
 
     private void auth() {
@@ -322,7 +331,7 @@ public class MercuryFirebaseService extends Service {
 
             if (timestamp < mBirthTime) {
                 // ignore commands sent before we started up
-                Log.d(MainActivity.TAG, "Ignoring old command");
+//                Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
             String command = String.format(MOTOR_FORMAT_STRING, distance, angle, isSerpentine);
@@ -347,7 +356,7 @@ public class MercuryFirebaseService extends Service {
 
         @Override
         public void onCancelled(FirebaseError firebaseError) {
-            Log.e(MainActivity.TAG, "Fireabse Error: " + firebaseError.getMessage());
+            Log.e(MainActivity.TAG, "Fireabse Error: ", firebaseError.toException());
         }
     }
 
@@ -362,7 +371,7 @@ public class MercuryFirebaseService extends Service {
 
             if (timestamp < mBirthTime) {
                 // ignore commands sent before we started up
-                Log.d(MainActivity.TAG, "Ignoring old command");
+//                Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
             String command = String.format(GRIPPER_FORMAT_STRING, launch, location, position.toUpperCase());
@@ -387,7 +396,7 @@ public class MercuryFirebaseService extends Service {
 
         @Override
         public void onCancelled(FirebaseError firebaseError) {
-            Log.e(MainActivity.TAG, "Fireabse Error: " + firebaseError.getMessage());
+            Log.e(MainActivity.TAG, "Fireabse Error: ", firebaseError.toException());
         }
     }
 
@@ -401,7 +410,7 @@ public class MercuryFirebaseService extends Service {
 
             if (timestamp < mBirthTime) {
                 // ignore commands sent before we started up
-                Log.d(MainActivity.TAG, "Ignoring old command");
+//                Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
             String command = String.format(LED_FORMAT_STRING, ledNumber, status.toUpperCase());
@@ -428,7 +437,7 @@ public class MercuryFirebaseService extends Service {
 
         @Override
         public void onCancelled(FirebaseError firebaseError) {
-            Log.e(MainActivity.TAG, "Fireabse Error: " + firebaseError.getMessage());
+            Log.e(MainActivity.TAG, "Firebase Error: ", firebaseError.toException());
         }
     }
 
