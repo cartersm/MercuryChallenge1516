@@ -111,8 +111,8 @@ angular.module('Mercury.home', [
                 firebase.child('gripperLauncherCommands')
                     .push({
                         launch: false,
-                        location: location,
-                        position: position,
+                        location: cmd.location,
+                        position: cmd.position,
                         timestamp: new Date().getTime()
                     });
                 $scope.gripper = {
