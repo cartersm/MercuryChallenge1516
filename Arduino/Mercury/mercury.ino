@@ -1,3 +1,5 @@
+#include <PID_v1.h>
+
 #include <Max3421e.h>
 #include <Usb.h>
 #include <AndroidAccessory.h>
@@ -34,22 +36,30 @@ int MOTOR3_PHASE = 8;
 int MOTOR4_PWM = 5;
 int MOTOR4_PHASE = 4;
 
-//int MOTOR5_PWM = 2;      // PIN 2 and 3 are for interrupts
-//int MOTOR5_PHASE = 3;
-//int MOTOR6_PWM = 4;
-//int MOTOR6_PHASE = 5;
-//
+int MOTOR5_PWM = 2;      // drawbridge
+int MOTOR5_PHASE = 30;
+
+int MOTOR6_PWM = 3;      // launcher
+int MOTOR6_PHASE = 32;
+
+
+// boolean flags//
+boolean isLaunched = false;
+boolean isRaised = false;
+boolean isOpen = false;
+
 ///// Servos ///////////
-//int Servo1 = 5;        // NEED TO ADD
+int Servo1 = 12;
 
 /////// Sensor Values //////
-//double Setpoint;
-//double Kp, Ki, Kd;
+
+///////// PID ////////////////////////////
+double Setpoint, Input, Output;
+double Kp = 2, Ki = 5, Kd = 1;
+PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 /////// Encoders Interrupts ///////////
-
 // Pin A is the signal, which should be attached to interrupt
-
 int encoder1PinA = 18;
 int encoder1PinB = 22;
 
@@ -64,10 +74,10 @@ int encoder4PinB = 28;
 
 int CurrentState;
 
-int Left_Sensor_Reading;
-int Right_Sensor_Reading;
-int Front_Sensor_Reading;
-int Error;
+double Left_Sensor_Reading;
+double Right_Sensor_Reading;
+double Front_Sensor_Reading;
+double Error;
 
 int angle;
 int distance;
@@ -109,7 +119,6 @@ AndroidAccessory acc(manufacturer,
                      "12345");
 char rxBuf[255];
 
-//PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 Servo myservo1;
 
 int Motor_Speed = 200;
@@ -136,7 +145,7 @@ void setup() {
   // set up the LCD's number of columns and rows:
   //  lcd.begin(16, 2);
 
-  //  myservo1.attach(Servo1);
+  myservo1.attach(Servo1);
 
   //  attachInterrupt(0, doEncoder1, CHANGE); // PIN 2
   //  attachInterrupt(1, doEncoder2, CHANGE); // PIN 3
@@ -146,28 +155,17 @@ void setup() {
 
   attachInterrupt(4, doEncoder2, CHANGE); // PIN 19 Motor2
   attachInterrupt(5, doEncoder1, CHANGE); // PIN 18 Motor1
-  //  myPID.SetMode(AUTOMATIC);
+
+  myPID.SetMode(AUTOMATIC);
+
   acc.powerOn();
 }
 void loop() {
   if (acc.isConnected()) {
-    //    digitalWrite(2, HIGH);
-    //    delay(500);
-    //    digitalWrite(2, LOW);
-    //    delay(500);
     int len = acc.read(rxBuf, sizeof(rxBuf), 1);
     if (len > 0) { // we've recevied a message
-      // LED will flash
-      //      digitalWrite(3, HIGH);
-      //      delay(500);
-      //      digitalWrite(3, LOW);
-      //      delay(500);
-      ///////////////////
       rxBuf[len - 1] = '\n';
       inputString = String(rxBuf);
-
-      Serial.println(inputString);
-
       if (inputString.equals("MOTORS 0 0 false")) {
         CurrentState = STOP;
       }
@@ -180,12 +178,10 @@ void loop() {
         encoder2Pos = 0;
         encoder3Pos = 0;
         encoder4Pos = 0;
-
         int angleStartIndex = distanceEndIndex + 1;
         int angleEndIndex = inputString.indexOf(" ", angleStartIndex);
         String angleStr = inputString.substring(angleStartIndex, angleEndIndex);
         angle = angleStr.toInt();
-
         if (angle != 0) {
           CurrentState = TURNING;
         }
@@ -199,6 +195,52 @@ void loop() {
       // FIXME: this should be right after the stop command check
       else if (inputString.equals("MOTORS 0 0 true")) {
         CurrentState = SERPINTINE_MODE;
+      }
+      else if (inputString.startsWith("GRIPPER")) {
+        int launchStartIndex = inputString.indexOf(" ") + 1;
+        int launchEndIndex =  inputString.indexOf(" ", launchStartIndex);
+
+        int locationStartIndex = launchEndIndex + 1;
+        int locationEndIndex = inputString.indexOf(" ", locationStartIndex);
+
+        int positionStartIndex = locationEndIndex + 1;
+        int positionEndIndex = inputString.indexOf(" ", positionStartIndex);
+
+        String launchStr = inputString.substring(launchStartIndex, launchEndIndex);
+        String locationStr = inputString.substring(locationStartIndex, locationEndIndex);
+        String positionStr = inputString.substring(positionStartIndex, positionEndIndex);
+
+
+        if (launchStr.equals("true") && isLaunched == false) {
+          // motor command
+          isLaunched = true;
+        }
+
+        // drawbridge
+        if (locationStr.equals("raised") && isRaised == false) {
+          // motor 5 command
+          digitalWrite(MOTOR5_PHASE, 1);  // need to change
+          analogWrite(MOTOR5_PWM, 150);
+          isRaised = !isRaised;
+        }
+        else if (locationStr.equals("lowered") && isRaised == true) {
+          // motor command
+          digitalWrite(MOTOR5_PHASE, 0);  // need to change
+          analogWrite(MOTOR5_PWM, 150);
+          isRaised = !isRaised;
+        }
+        /////// gripper  //////
+        if (positionStr.equals("open") && isOpen == false) {
+          myservo1.write(130);  /// find correct values
+          delay(1000);
+          isOpen = !isOpen;
+        }
+        else if (positionStr.equals("closed") && isOpen == true) {
+          myservo1.write(30);  /// find correct values
+          delay(1000);
+          isOpen = !isOpen;
+        }
+
       }
 
     }
@@ -215,12 +257,10 @@ void loop() {
         counts2 = DistanceToCounts2(distance);
         counts3 = DistanceToCounts3(distance);
         counts4 = DistanceToCounts4(distance);
-
         driveMotor1();
         driveMotor2();
         driveMotor3();
         driveMotor4();
-
         if (abs(encoder1Pos) > abs(counts1) &&
             abs(encoder2Pos) > abs(counts2) &&
             abs(encoder3Pos) > abs(counts3) &&
@@ -233,56 +273,30 @@ void loop() {
         countsangle2 = angleToCounts2(angle);
         countsangle3 = angleToCounts3(angle);
         countsangle4 = angleToCounts4(angle);
-
         turnRobot(angle);
-
         break;
       case SERPINTINE_MODE:
 
+        Setpoint = 0;
+        Input = getSensorValue();
+        myPID.Compute();
+
+        digitalWrite(MOTOR1_PHASE, 1);  // forward
+        digitalWrite(MOTOR2_PHASE, 1);  // forward
+        digitalWrite(MOTOR3_PHASE, 1);  // forward
+        digitalWrite(MOTOR4_PHASE, 1);  // forward
+
+        // Todo: Relate output to motor speed
+        Serial.println(Output);
+
+        analogWrite(MOTOR1_PWM, 255);
+        analogWrite(MOTOR3_PWM, 255);
+
+        analogWrite(MOTOR2_PWM, 255);
+        analogWrite(MOTOR4_PWM, 255);
+
         break;
     }
-
-
-
-
-
-
-    //        if (motor1Driving && motor2Driving && motor3Driving && motor4Driving) {
-    //          driveMotor1();
-    //          driveMotor2();
-    //          driveMotor3();
-    //          driveMotor4();
-    //        } else {
-    //          stopAllMotors();
-    //        }
-
-
-    //
-    //        countsangle1 = angleToCounts1(angle);
-    //        countsangle2 = angleToCounts2(angle);
-    //        countsangle3 = angleToCounts3(angle);
-    //        countsangle4 = angleToCounts4(angle);
-    //
-    //        encoder1Pos = 0;
-    //        encoder2Pos = 0;
-    //        encoder3Pos = 0;
-    //        encoder4Pos = 0;
-    //
-    //        if (angle != 0) {
-    //          turnRobot(angle);
-    //          if (isTurning) {
-    //            turnRobot(angle);
-    //          } else {
-    //            stopAllMotors();
-    //          }
-    //        }
-
-    // Decide if it is serpentine mode
-    //      int modeIndex = angleStartIndex + 1;
-    //      int angleEndIndex = inputString.indexOf(" ", angleStartIndex);
-    //      String angleStr = inputString.substring(angleStartIndex, angleEndIndex);
-    //      angle = angleStr.toInt();
-
   }
 }
 ////////////////////// Angle degrees to encoder counts //////////////////////
@@ -320,47 +334,6 @@ int DistanceToCounts4(int distance) {
   return counts;
 }
 ///////////////////////// Drive Motors ////////////////////////////////////////
-void determineDrivingMotor1() {
-  if (counts1 == 0 || abs(encoder1Pos) > abs(counts1)) {
-    motor1Driving = false;
-    analogWrite(MOTOR1_PWM, 0);
-
-  }
-  else {
-    motor1Driving = true;
-  }
-}
-void determineDrivingMotor2() {
-  if (counts2 == 0 || abs(encoder2Pos) > abs(counts2)) {
-    motor2Driving = false;
-    analogWrite(MOTOR2_PWM, 0);
-
-  }
-  else {
-    motor2Driving = true;
-  }
-}
-void determineDrivingMotor3() {
-  if (counts3 == 0 || abs(encoder3Pos) > abs(counts3)) {
-    motor3Driving = false;
-    analogWrite(MOTOR3_PWM, 0);
-
-  }
-  else {
-    motor3Driving = true;
-  }
-}
-void determineDrivingMotor4() {
-  if (counts4 == 0 || abs(encoder4Pos) > abs(counts4)) {
-    motor4Driving = false;
-    analogWrite(MOTOR4_PWM, 0);
-
-  }
-  else {
-    motor4Driving = true;
-  }
-}
-//////////////////////////////////////////////////
 void driveMotor1() {
   if (counts1 > 0) {
     digitalWrite(MOTOR1_PHASE, 1);  // forward
@@ -415,13 +388,6 @@ void turnRobot(int angle) {
     digitalWrite(MOTOR2_PHASE, 1);  // forward
     digitalWrite(MOTOR4_PHASE, 1);  // forward
   }
-
-  Serial.print("countsangle1: ");
-  Serial.println(countsangle1);
-
-  Serial.print("encoder1Pos: ");
-  Serial.println(encoder1Pos);
-
   if (abs(countsangle1) > abs (encoder1Pos) &&
       abs(countsangle2) > abs (encoder2Pos) &&
       abs(countsangle3) > abs (encoder3Pos) &&
@@ -441,10 +407,6 @@ void stopAllMotors() {
   analogWrite(MOTOR2_PWM, 0);
   analogWrite(MOTOR3_PWM, 0);
   analogWrite(MOTOR4_PWM, 0);
-  motor1Driving = false;
-  motor2Driving = false;
-  motor3Driving = false;
-  motor4Driving = false;
 }
 /////////////////////////////  Encoders/////////////////////////////////
 void doEncoder1() {
@@ -476,15 +438,13 @@ void doEncoder4() {
   }
 }
 //////////////////////////Sensors /////////////////////////////////
-
-
-//void updateSensorValues() {
-//  Left_Sensor_Reading = analogRead(LEFT_INPUT);
-//  Right_Sensor_Reading = analogRead(RIGHT_INPUT);
-//  //  Front_Sensor_Reading = analogRead(FRONT_INPUT);
-//  Error = Left_Sensor_Reading - Right_Sensor_Reading;
-//  lcd.setCursor(0, 1);
-//  lcd.print(Left_Sensor_Reading, DEC);
-//  delay(200);
-//}
-
+double getSensorValue() {
+  Left_Sensor_Reading = analogRead(LEFT_INPUT);
+  Right_Sensor_Reading = analogRead(RIGHT_INPUT);
+  Error = Left_Sensor_Reading - Right_Sensor_Reading;
+  return Error;
+}
+double getFrontDistance() {
+  Front_Sensor_Reading = analogRead(FRONT_INPUT);
+  return Front_Sensor_Reading;
+}
