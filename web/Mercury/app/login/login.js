@@ -24,10 +24,11 @@ angular.module('Mercury.login', [
             });
 
             $scope.user = {};
+            $scope.emailSuffix = '@rose-hulman.edu';
 
             $scope.SignIn = function (event) {
                 event.preventDefault();
-                var username = $scope.user.email;
+                var username = $scope.user.email + $scope.emailSuffix;
                 var password = $scope.user.password;
 
                 Auth.auth(username, password,
