@@ -1,7 +1,7 @@
 angular.module('Mercury.home', [
-    'ngRoute',
-    'firebase'
-])
+        'ngRoute',
+        'firebase'
+    ])
     .config(['$routeProvider', function ($routeProvider) {
         $routeProvider.when('/home', {
             templateUrl: 'home/home.html',
@@ -138,9 +138,13 @@ angular.module('Mercury.home', [
                 };
             };
 
-            $scope.isGripperRaised = function () {
-                return $scope.latestGripperCommands &&
-                    $scope.latestGripperCommands[0].location.toLowerCase() === 'raised';
+            $scope.canLaunch = function () {
+                if ($scope.latestGripperCommands) {
+                    var cmd = $scope.latestGripperCommands[0];
+                    return cmd.location.toLowerCase() === 'lowered' ||
+                        cmd.location.toLowerCase() === 'raised' && cmd.position.toLowerCase() === 'open';
+                }
+                return false;
             };
 
             $scope.isMotorCommandInvalid = function (motor) {

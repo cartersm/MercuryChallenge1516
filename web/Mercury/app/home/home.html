@@ -109,7 +109,7 @@
                     </button>
                     <button class="btn btn-primary btn-lg btn-block btn-success" type="submit"
                             ng-click="sendGripperLaunchCommand()"
-                            ng-disabled="isGripperRaised()">
+                            ng-disabled="!canLaunch()">
                         LAUNCH
                     </button>
                 </div>
