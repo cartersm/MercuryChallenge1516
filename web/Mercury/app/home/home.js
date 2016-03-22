@@ -158,7 +158,7 @@ angular.module('Mercury.home', [
                 if ($scope.latestGripperCommands) {
                     var cmd = $scope.latestGripperCommands[0];
                     return cmd.location.toLowerCase() === 'lowered' ||
-                        cmd.location.toLowerCase() === 'raised' && cmd.position.toLowerCase() === 'open';
+                        cmd.position.toLowerCase() === 'open';
                 }
                 return false;
             };
