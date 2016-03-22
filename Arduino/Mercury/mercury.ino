@@ -8,15 +8,22 @@
 #include <Servo.h>
 
 // initialize the library with the numbers of the interface pins
-//LiquidCrystal lcd(31, 33, 35, 37, 39, 41);
-
-//LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+LiquidCrystal lcd(48, 46, 42, 40, 36, 34);
 
 //////// IR Sensors ///
-#define LEFT_INPUT A3    // NEED TO CHANGE
-#define RIGHT_INPUT A2
-#define FRONT_INPUT A1
+int voltage_input = A0;
+float v;
 
+int Left_Sensor = A2;
+int Left_Sensor_Reading;
+
+int Right_Sensor = A3;
+int Right_Sensor_Reading;
+
+int Front_Sensor = A4;
+int Front_Sensor_Reading;
+
+// States//
 #define STOP 0
 #define DRIVING_STRAIGHT 1
 #define TURNING 2
@@ -36,16 +43,22 @@ int MOTOR3_PHASE = 8;
 int MOTOR4_PWM = 5;
 int MOTOR4_PHASE = 4;
 
-int MOTOR5_PWM = 2;      // drawbridge
-int MOTOR5_PHASE = 30;
+int DRAWBRIDGE1 = 45;      // drawbridge
+int DRAWBRIDGE2 = 47;
+int DRAWBRIDGE_ENABLE = 2;
+int DRAWBRIDGE_SWITCH = 48;
 
-int MOTOR6_PWM = 3;      // launcher
-int MOTOR6_PHASE = 32;
+
+int CLAW1 = 39;
+int CLAW2 = 41;
+int CLAW_ENABLE = 3;
+
+
 
 
 // boolean flags//
 boolean isLaunched = false;
-boolean isRaised = false;
+boolean isRaised = true;
 boolean isOpen = false;
 
 ///// Servos ///////////
@@ -55,7 +68,7 @@ int Servo1 = 12;
 
 ///////// PID ////////////////////////////
 double Setpoint, Input, Output;
-double Kp = 2, Ki = 5, Kd = 1;
+double Kp = 2, Ki = 5, Kd = 1;          // do some changes with these parameters
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 /////// Encoders Interrupts ///////////
@@ -73,11 +86,6 @@ int encoder4PinA = 21;
 int encoder4PinB = 28;
 
 int CurrentState;
-
-double Left_Sensor_Reading;
-double Right_Sensor_Reading;
-double Front_Sensor_Reading;
-double Error;
 
 int angle;
 int distance;
@@ -124,9 +132,9 @@ Servo myservo1;
 int Motor_Speed = 200;
 
 void setup() {
-  Serial.begin(9600);
-  delay (1500);
 
+  pinMode(DRAWBRIDGE_ENABLE, OUTPUT);
+  analogWrite(DRAWBRIDGE_ENABLE, 0);
   pinMode(MOTOR1_PWM, OUTPUT);
   pinMode(MOTOR1_PHASE, OUTPUT);
   pinMode(MOTOR2_PWM, OUTPUT);
@@ -135,15 +143,24 @@ void setup() {
   pinMode(MOTOR3_PHASE, OUTPUT);
   pinMode(MOTOR4_PWM, OUTPUT);
   pinMode(MOTOR4_PHASE, OUTPUT);
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
+  pinMode(DRAWBRIDGE1, OUTPUT);
+  pinMode(DRAWBRIDGE2, OUTPUT);
+  pinMode(DRAWBRIDGE_SWITCH, INPUT_PULLUP);
+
   //  pinMode(encoder1PinB, INPUT);
   //  pinMode(encoder2PinB, INPUT);
   //  pinMode(encoder3PinB, INPUT);
   //  pinMode(encoder4PinB, INPUT);
+  lcd.begin(16, 2);
+  // Print a message to the LCD.
+  lcd.print("BatteryLvl:");
+  lcd.setCursor(0, 1);
+  lcd.print("R:");
+  lcd.setCursor(5, 1);
+  lcd.print("L:");
+  lcd.setCursor(10, 1);
+  lcd.print("F:");
 
-  // set up the LCD's number of columns and rows:
-  //  lcd.begin(16, 2);
 
   myservo1.attach(Servo1);
 
@@ -157,14 +174,25 @@ void setup() {
   attachInterrupt(5, doEncoder1, CHANGE); // PIN 18 Motor1
 
   myPID.SetMode(AUTOMATIC);
+  Serial.begin(9600);
+  delay (1500);
+
 
   acc.powerOn();
 }
 void loop() {
+  // check voltage level
+  if (getVoltageLevel() < 6) {
+    /// add something here//
+  }
+
+
+
+
   if (acc.isConnected()) {
     int len = acc.read(rxBuf, sizeof(rxBuf), 1);
-    if (len > 0) { // we've recevied a message
-      rxBuf[len - 1] = '\n';
+    if (len > 0) { // we've received a message
+      rxBuf[len - 1] = '\0';
       inputString = String(rxBuf);
       if (inputString.equals("MOTORS 0 0 false")) {
         CurrentState = STOP;
@@ -197,6 +225,7 @@ void loop() {
         CurrentState = SERPINTINE_MODE;
       }
       else if (inputString.startsWith("GRIPPER")) {
+        Serial.println(inputString);
         int launchStartIndex = inputString.indexOf(" ") + 1;
         int launchEndIndex =  inputString.indexOf(" ", launchStartIndex);
 
@@ -208,37 +237,55 @@ void loop() {
 
         String launchStr = inputString.substring(launchStartIndex, launchEndIndex);
         String locationStr = inputString.substring(locationStartIndex, locationEndIndex);
-        String positionStr = inputString.substring(positionStartIndex, positionEndIndex);
-
+       String positionStr = inputString.substring(positionStartIndex, positionEndIndex);
 
         if (launchStr.equals("true") && isLaunched == false) {
           // motor command
+          analogWrite(CLAW_ENABLE, 255);
+          digitalWrite(CLAW1, HIGH);     //need to change
+          digitalWrite(CLAW2, LOW);
+          delay(50);
           isLaunched = true;
         }
 
         // drawbridge
-        if (locationStr.equals("raised") && isRaised == false) {
-          // motor 5 command
-          digitalWrite(MOTOR5_PHASE, 1);  // need to change
-          analogWrite(MOTOR5_PWM, 150);
-          isRaised = !isRaised;
+        if (locationStr.equalsIgnoreCase("raised")) {
+
+          analogWrite(DRAWBRIDGE_ENABLE, 255);
+          digitalWrite(DRAWBRIDGE1, HIGH);     //raise  coming correct
+          digitalWrite(DRAWBRIDGE2, LOW);
+          while (digitalRead(DRAWBRIDGE_SWITCH) != LOW) {
+            delay(100);
+          }
+          analogWrite(DRAWBRIDGE_ENABLE, 0);
         }
-        else if (locationStr.equals("lowered") && isRaised == true) {
+        else if (locationStr.equalsIgnoreCase("lowered") && digitalRead(DRAWBRIDGE_SWITCH) != HIGH) {
+
+          digitalWrite(DRAWBRIDGE1, LOW);     //raise
+          digitalWrite(DRAWBRIDGE2, HIGH);
+          analogWrite(DRAWBRIDGE_ENABLE, 255);
+          delay(2800);
+          analogWrite(DRAWBRIDGE_ENABLE, 0);
+
           // motor command
-          digitalWrite(MOTOR5_PHASE, 0);  // need to change
-          analogWrite(MOTOR5_PWM, 150);
-          isRaised = !isRaised;
+          //          analogWrite(DRAWBRIDGE_ENABLE, 255);
+          //          digitalWrite(DRAWBRIDGE2, HIGH);
+          //          digitalWrite(DRAWBRIDGE1, LOW);
+          //          analogWrite(DRAWBRIDGE_ENABLE, 255);
+          //          delay(1000);
+          //          analogWrite(DRAWBRIDGE_ENABLE, 0);
         }
         /////// gripper  //////
-        if (positionStr.equals("open") && isOpen == false) {
-          myservo1.write(130);  /// find correct values
-          delay(1000);
-          isOpen = !isOpen;
-        }
-        else if (positionStr.equals("closed") && isOpen == true) {
+        if (positionStr.equalsIgnoreCase("open")) {
+
           myservo1.write(30);  /// find correct values
           delay(1000);
-          isOpen = !isOpen;
+
+        }
+        else if (positionStr.equalsIgnoreCase("closed")) {
+          myservo1.write(120);  /// find correct values
+          delay(1000);
+
         }
 
       }
@@ -278,9 +325,8 @@ void loop() {
       case SERPINTINE_MODE:
 
         Setpoint = 0;
-        Input = getSensorValue();
+        int Input = getRightSensorValue() - getLeftSensorValue();
         myPID.Compute();
-
         digitalWrite(MOTOR1_PHASE, 1);  // forward
         digitalWrite(MOTOR2_PHASE, 1);  // forward
         digitalWrite(MOTOR3_PHASE, 1);  // forward
@@ -288,12 +334,14 @@ void loop() {
 
         // Todo: Relate output to motor speed
         Serial.println(Output);
-
-        analogWrite(MOTOR1_PWM, 255);
-        analogWrite(MOTOR3_PWM, 255);
-
-        analogWrite(MOTOR2_PWM, 255);
-        analogWrite(MOTOR4_PWM, 255);
+        //        int left_spd =
+        //        int right_spd =
+        // Same speed for 1 and 3
+//        analogWrite(MOTOR1_PWM, left_spd);
+//        analogWrite(MOTOR3_PWM, left_spd);
+//        // Same speed for 2 and 4
+//        analogWrite(MOTOR2_PWM, right_spd);
+//        analogWrite(MOTOR4_PWM, right_spd);
 
         break;
     }
@@ -438,13 +486,31 @@ void doEncoder4() {
   }
 }
 //////////////////////////Sensors /////////////////////////////////
-double getSensorValue() {
-  Left_Sensor_Reading = analogRead(LEFT_INPUT);
-  Right_Sensor_Reading = analogRead(RIGHT_INPUT);
-  Error = Left_Sensor_Reading - Right_Sensor_Reading;
-  return Error;
+int getLeftSensorValue() {
+  Left_Sensor_Reading = analogRead(Left_Sensor);
+  lcd.setCursor(7, 1);
+  lcd.print(Left_Sensor_Reading, DEC);
+  return Left_Sensor_Reading;
 }
-double getFrontDistance() {
-  Front_Sensor_Reading = analogRead(FRONT_INPUT);
+
+int getRightSensorValue() {
+  Right_Sensor_Reading = analogRead(Right_Sensor);
+  lcd.setCursor(2, 1);
+  lcd.print(Right_Sensor_Reading, DEC);;
+  return Right_Sensor_Reading;
+}
+
+int getFrontSensorValue() {
+  Front_Sensor_Reading = analogRead(Front_Sensor);
+  lcd.setCursor(12, 1);
+  lcd.print(Front_Sensor_Reading, DEC);
   return Front_Sensor_Reading;
 }
+/////////////////////// battery reading //////////////////////////
+float getVoltageLevel() {
+  v = (analogRead(voltage_input) * 5.0 * 2) / 1023.0;
+  lcd.setCursor(11, 0);
+  lcd.print(v, DEC);
+  return v;
+}
+
