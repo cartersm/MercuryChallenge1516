@@ -46,7 +46,7 @@ int MOTOR4_PHASE = 4;
 int DRAWBRIDGE1 = 45;      // drawbridge
 int DRAWBRIDGE2 = 47;
 int DRAWBRIDGE_ENABLE = 2;
-
+int DRAWBRIDGE_SWITCH = 48;
 
 int CLAW1 = 39;
 int CLAW2 = 41;
@@ -144,6 +144,7 @@ void setup() {
   pinMode(MOTOR4_PHASE, OUTPUT);
   pinMode(DRAWBRIDGE1, OUTPUT);
   pinMode(DRAWBRIDGE2, OUTPUT);
+  pinMode(DRAWBRIDGE_SWITCH, INPUT_PULLUP);
 
   //  pinMode(encoder1PinB, INPUT);
   //  pinMode(encoder2PinB, INPUT);
@@ -252,19 +253,18 @@ void loop() {
           analogWrite(DRAWBRIDGE_ENABLE, 255);
           digitalWrite(DRAWBRIDGE1, HIGH);     //raise  coming correct
           digitalWrite(DRAWBRIDGE2, LOW);
-          delay(2200);
+
+          while (digitalRead(DRAWBRIDGE_SWITCH) != LOW) {
+            delay(100);
+          }
           analogWrite(DRAWBRIDGE_ENABLE, 0);
-
-          //isRaised = true;
-
-
         }
-        else if (locationStr.equalsIgnoreCase("lowered")) {
+        else if (locationStr.equalsIgnoreCase("lowered") && digitalRead(DRAWBRIDGE_SWITCH) != HIGH) {
 
           digitalWrite(DRAWBRIDGE1, LOW);     //raise
           digitalWrite(DRAWBRIDGE2, HIGH);
           analogWrite(DRAWBRIDGE_ENABLE, 255);
-          delay(2200);
+          delay(2800);
           analogWrite(DRAWBRIDGE_ENABLE, 0);
 
           // motor command
@@ -274,8 +274,6 @@ void loop() {
           //          analogWrite(DRAWBRIDGE_ENABLE, 255);
           //          delay(1000);
           //          analogWrite(DRAWBRIDGE_ENABLE, 0);
-
-          //isRaised = false;
         }
         /////// gripper  //////
         if (positionStr.equalsIgnoreCase("open")) {
@@ -344,7 +342,6 @@ void loop() {
         // Same speed for 2 and 4
         analogWrite(MOTOR2_PWM, right_spd);
         analogWrite(MOTOR4_PWM, right_spd);
-
         break;
     }
   }
@@ -498,7 +495,7 @@ int getLeftSensorValue() {
 int getRightSensorValue() {
   Right_Sensor_Reading = analogRead(Right_Sensor);
   lcd.setCursor(2, 1);
-  lcd.print(Right_Sensor_Reading, DEC);;
+  lcd.print(Right_Sensor_Reading, DEC);
   return Right_Sensor_Reading;
 }
 

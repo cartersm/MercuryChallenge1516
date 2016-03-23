@@ -111,8 +111,8 @@ angular.module('Mercury.home', [
                 firebase.child('gripperLauncherCommands')
                     .push({
                         launch: false,
-                        location: cmd.location,
-                        position: cmd.position,
+                        location: validateLocation(cmd.location),
+                        position: validatePosition(cmd.position),
                         timestamp: new Date().getTime()
                     });
                 $scope.gripper = {
@@ -120,6 +120,22 @@ angular.module('Mercury.home', [
                     location: '',
                     position: ''
                 };
+            };
+
+            var validateLocation = function (location) {
+                if (location && (location.toLowerCase() === 'lowered' || location.toLowerCase() === 'raised')) {
+                    return location;
+                } else {
+                    return '';
+                }
+            };
+
+            var validatePosition = function (position) {
+                if (position && (position.toLowerCase() === 'open' || position.toLowerCase() === 'closed')) {
+                    return position;
+                } else {
+                    return '';
+                }
             };
 
             $scope.sendGripperLaunchCommand = function () {
@@ -142,7 +158,7 @@ angular.module('Mercury.home', [
                 if ($scope.latestGripperCommands) {
                     var cmd = $scope.latestGripperCommands[0];
                     return cmd.location.toLowerCase() === 'lowered' ||
-                        cmd.location.toLowerCase() === 'raised' && cmd.position.toLowerCase() === 'open';
+                        cmd.position.toLowerCase() === 'open';
                 }
                 return false;
             };

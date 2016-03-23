@@ -78,6 +78,13 @@
                                     Lowered
                                 </label>
                             </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="location" ng-model="gripper.location"
+                                           value="" required checked>
+                                    Unchanged
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group" ng-class="{ 'has-error' : gripperCommandForm.position.$invalid}">
@@ -98,13 +105,20 @@
                                     Closed
                                 </label>
                             </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="position" ng-model="gripper.position"
+                                           value="" required checked>
+                                    Unchanged
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </form>
                 <div class="row">
                     <button class="btn btn-primary btn-lg btn-block" type="submit"
                             ng-click="sendGripperCommand(gripper)"
-                            ng-disabled="gripperCommandForm.$invalid">
+                            ng-disabled="gripperCommandForm.location.$invalid && gripperCommandForm.position.$invalid">
                         Send Gripper Command
                     </button>
                     <button class="btn btn-primary btn-lg btn-block btn-success" type="submit"
