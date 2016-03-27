@@ -3,24 +3,17 @@
 #include <Max3421e.h>
 #include <Usb.h>
 #include <AndroidAccessory.h>
-
-#include <LiquidCrystal.h>
 #include <Servo.h>
 
-// initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(48, 46, 42, 40, 36, 34);
-
 //////// IR Sensors ///
-int voltage_input = A0;
-float v;
 
 int Left_Sensor = A2;
 int Left_Sensor_Reading;
 
-int Right_Sensor = A3;
+int Right_Sensor = A4;
 int Right_Sensor_Reading;
 
-int Front_Sensor = A4;
+int Front_Sensor = A3;
 int Front_Sensor_Reading;
 
 // States//
@@ -46,7 +39,9 @@ int MOTOR4_PHASE = 4;
 int DRAWBRIDGE1 = 45;      // drawbridge
 int DRAWBRIDGE2 = 47;
 int DRAWBRIDGE_ENABLE = 2;
+
 int DRAWBRIDGE_SWITCH = 48;
+
 
 int CLAW1 = 39;
 int CLAW2 = 41;
@@ -67,7 +62,7 @@ int Servo1 = 12;
 
 ///////// PID ////////////////////////////
 double Setpoint, Input, Output;
-double Kp = 2, Ki = 5, Kd = 1;          // do some changes with these parameters
+double Kp = 0.3, Ki = 1, Kd = 0.1;          // do some changes with these parameters
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 /////// Encoders Interrupts ///////////
@@ -150,15 +145,7 @@ void setup() {
   //  pinMode(encoder2PinB, INPUT);
   //  pinMode(encoder3PinB, INPUT);
   //  pinMode(encoder4PinB, INPUT);
-  lcd.begin(16, 2);
-  // Print a message to the LCD.
-  lcd.print("BatteryLvl:");
-  lcd.setCursor(0, 1);
-  lcd.print("R:");
-  lcd.setCursor(5, 1);
-  lcd.print("L:");
-  lcd.setCursor(10, 1);
-  lcd.print("F:");
+
 
 
   myservo1.attach(Servo1);
@@ -172,7 +159,7 @@ void setup() {
   attachInterrupt(4, doEncoder2, CHANGE); // PIN 19 Motor2
   attachInterrupt(5, doEncoder1, CHANGE); // PIN 18 Motor1
 
-  myPID.SetMode(AUTOMATIC);
+
   Serial.begin(9600);
   delay (1500);
 
@@ -180,21 +167,24 @@ void setup() {
   acc.powerOn();
 }
 void loop() {
-  // check voltage level
-  if (getVoltageLevel() < 6) {
-    /// add something here//
-  }
-
-
-
-
   if (acc.isConnected()) {
     int len = acc.read(rxBuf, sizeof(rxBuf), 1);
     if (len > 0) { // we've received a message
       rxBuf[len - 1] = '\0';
       inputString = String(rxBuf);
+      Serial.println(inputString);
       if (inputString.equals("MOTORS 0 0 false")) {
         CurrentState = STOP;
+      }
+      else if (inputString.equals("MOTORS 0 0 true")) {  ///////////////////  serpentine mode ///////////////////
+        Serial.println("yes");
+
+        CurrentState = SERPINTINE_MODE;
+
+        ///////////////////////////////////////////////////////////////////
+
+
+
       }
       else if (inputString.startsWith("MOTORS")) {           // Obtain distance the robot needs to travel
         int distanceStartIndex =  inputString.indexOf(" ") + 1;
@@ -220,9 +210,11 @@ void loop() {
         }
       }
       // FIXME: this should be right after the stop command check
-      else if (inputString.equals("MOTORS 0 0 true")) {
-        CurrentState = SERPINTINE_MODE;
-      }
+
+
+
+
+
       else if (inputString.startsWith("GRIPPER")) {
         Serial.println(inputString);
         int launchStartIndex = inputString.indexOf(" ") + 1;
@@ -253,7 +245,14 @@ void loop() {
           analogWrite(DRAWBRIDGE_ENABLE, 255);
           digitalWrite(DRAWBRIDGE1, HIGH);     //raise  coming correct
           digitalWrite(DRAWBRIDGE2, LOW);
+          delay(2200);
+          analogWrite(DRAWBRIDGE_ENABLE, 0);
 
+          //isRaised = true;
+
+
+        }
+        else if (locationStr.equalsIgnoreCase("lowered")) {
           while (digitalRead(DRAWBRIDGE_SWITCH) != LOW) {
             delay(100);
           }
@@ -264,6 +263,7 @@ void loop() {
           digitalWrite(DRAWBRIDGE1, LOW);     //raise
           digitalWrite(DRAWBRIDGE2, HIGH);
           analogWrite(DRAWBRIDGE_ENABLE, 255);
+          delay(2200);
           delay(2800);
           analogWrite(DRAWBRIDGE_ENABLE, 0);
 
@@ -274,6 +274,9 @@ void loop() {
           //          analogWrite(DRAWBRIDGE_ENABLE, 255);
           //          delay(1000);
           //          analogWrite(DRAWBRIDGE_ENABLE, 0);
+
+          //isRaised = false;
+
         }
         /////// gripper  //////
         if (positionStr.equalsIgnoreCase("open")) {
@@ -323,25 +326,66 @@ void loop() {
         turnRobot(angle);
         break;
       case SERPINTINE_MODE:
+        myPID.SetMode(AUTOMATIC);
+        Setpoint = 140;
+        int R = getRightSensorValue();
+        int L = getLeftSensorValue();
+        Serial.print("R: ");
+        Serial.println(R);
+        Serial.print("L: ");
+        Serial.println(L);
 
-        Setpoint = 0;
-        int Input = getRightSensorValue() - getLeftSensorValue();
-        myPID.Compute();
         digitalWrite(MOTOR1_PHASE, 1);  // forward
         digitalWrite(MOTOR2_PHASE, 1);  // forward
         digitalWrite(MOTOR3_PHASE, 1);  // forward
         digitalWrite(MOTOR4_PHASE, 1);  // forward
-
         // Todo: Relate output to motor speed
-        Serial.println(Output);
-        //        int left_spd =
-        //        int right_spd =
-        // Same speed for 1 and 3
-        analogWrite(MOTOR1_PWM, left_spd);
-        analogWrite(MOTOR3_PWM, left_spd);
-        // Same speed for 2 and 4
-        analogWrite(MOTOR2_PWM, right_spd);
-        analogWrite(MOTOR4_PWM, right_spd);
+
+
+        if (abs(R - L) < 100) {
+          int left_spd = 225;
+          int right_spd = 225;
+          Serial.println("Go straight\n");
+          //Same speed for 1 and 3
+          analogWrite(MOTOR1_PWM, left_spd);
+          analogWrite(MOTOR3_PWM, left_spd);
+          // Same speed for 2 and 4
+          analogWrite(MOTOR2_PWM, right_spd);
+          analogWrite(MOTOR4_PWM, right_spd);
+        }
+        else if (L > R) {      // use right as feedback to control motor speed
+          Serial.println("Close to the right\n");
+          int left_spd = 200;
+          int right_spd = 200;
+          Setpoint = 0;
+          Input = R - L;
+          myPID.Compute();
+          //Same speed for 1 and 3  (R)
+          analogWrite(MOTOR1_PWM, left_spd * Output / 10);
+          analogWrite(MOTOR3_PWM, left_spd * Output / 10);
+          // Same speed for 2 and 4 (L)
+          analogWrite(MOTOR2_PWM, right_spd);
+          analogWrite(MOTOR4_PWM, right_spd);
+
+        }
+        else {
+          Serial.println("Close to the left");
+          int left_spd = 200;
+          int right_spd = 200;
+          Setpoint = 0;
+          Input = L - R;
+          myPID.Compute();
+          //Same speed for 1 and 3  (R)
+          analogWrite(MOTOR1_PWM, left_spd);
+          analogWrite(MOTOR3_PWM, left_spd);
+          // Same speed for 2 and 4 (L)
+          analogWrite(MOTOR2_PWM, right_spd * Output / 10);
+          analogWrite(MOTOR4_PWM, right_spd * Output / 10);
+
+
+        }
+
+
         break;
     }
   }
@@ -485,31 +529,17 @@ void doEncoder4() {
   }
 }
 //////////////////////////Sensors /////////////////////////////////
-int getLeftSensorValue() {
-  Left_Sensor_Reading = analogRead(Left_Sensor);
-  lcd.setCursor(7, 1);
-  lcd.print(Left_Sensor_Reading, DEC);
-  return Left_Sensor_Reading;
-}
+
 
 int getRightSensorValue() {
   Right_Sensor_Reading = analogRead(Right_Sensor);
-  lcd.setCursor(2, 1);
-  lcd.print(Right_Sensor_Reading, DEC);
   return Right_Sensor_Reading;
+
 }
 
-int getFrontSensorValue() {
-  Front_Sensor_Reading = analogRead(Front_Sensor);
-  lcd.setCursor(12, 1);
-  lcd.print(Front_Sensor_Reading, DEC);
-  return Front_Sensor_Reading;
+int getLeftSensorValue() {
+  Left_Sensor_Reading = analogRead(Left_Sensor);
+  return Left_Sensor_Reading;
 }
-/////////////////////// battery reading //////////////////////////
-float getVoltageLevel() {
-  v = (analogRead(voltage_input) * 5.0 * 2) / 1023.0;
-  lcd.setCursor(11, 0);
-  lcd.print(v, DEC);
-  return v;
-}
+
 
