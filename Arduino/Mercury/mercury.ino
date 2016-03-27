@@ -61,8 +61,10 @@ int Servo1 = 12;
 /////// Sensor Values //////
 
 ///////// PID ////////////////////////////
-double Setpoint, Input, Output;
-double Kp = 0.3, Ki = 1, Kd = 0.1;          // do some changes with these parameters
+double Setpoint, Discrepancy, Input, Output;
+double Kp = 0.3;
+double Ki = 0;
+double Kd = 0;          // do some changes with these parameters
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 /////// Encoders Interrupts ///////////
@@ -159,10 +161,17 @@ void setup() {
   attachInterrupt(4, doEncoder2, CHANGE); // PIN 19 Motor2
   attachInterrupt(5, doEncoder1, CHANGE); // PIN 18 Motor1
 
-
   Serial.begin(9600);
-  delay (1500);
+  
+  Setpoint = (getLeftSensorValue() + getRightSensorValue()) / 2.0;
+  Discrepancy = getLeftSensorValue() - getRightSensorValue();
+  Serial.print("Setpoint: ");
+  Serial.println(Setpoint);
 
+  Serial.print("Discrepancy: ");
+  Serial.println(Discrepancy);
+
+  delay (1500);
 
   acc.powerOn();
 }
@@ -176,16 +185,6 @@ void loop() {
       if (inputString.equals("MOTORS 0 0 false")) {
         CurrentState = STOP;
       }
-      else if (inputString.equals("MOTORS 0 0 true")) {  ///////////////////  serpentine mode ///////////////////
-        Serial.println("yes");
-
-        CurrentState = SERPINTINE_MODE;
-
-        ///////////////////////////////////////////////////////////////////
-
-
-
-      }
       else if (inputString.startsWith("MOTORS")) {           // Obtain distance the robot needs to travel
         int distanceStartIndex =  inputString.indexOf(" ") + 1;
         int distanceEndIndex = inputString.indexOf(" ", distanceStartIndex);
@@ -195,11 +194,17 @@ void loop() {
         encoder2Pos = 0;
         encoder3Pos = 0;
         encoder4Pos = 0;
+        
         int angleStartIndex = distanceEndIndex + 1;
         int angleEndIndex = inputString.indexOf(" ", angleStartIndex);
         String angleStr = inputString.substring(angleStartIndex, angleEndIndex);
         angle = angleStr.toInt();
-        if (angle != 0) {
+
+        if (inputString.indexOf("true") > 0) {
+          CurrentState = SERPINTINE_MODE;
+          Serial.println("Entering Serpentine Mode");
+        }
+        else if (angle != 0) {
           CurrentState = TURNING;
         }
         else if (distance != 0) {
@@ -209,11 +214,6 @@ void loop() {
           CurrentState = STOP;
         }
       }
-      // FIXME: this should be right after the stop command check
-
-
-
-
 
       else if (inputString.startsWith("GRIPPER")) {
         Serial.println(inputString);
@@ -327,13 +327,12 @@ void loop() {
         break;
       case SERPINTINE_MODE:
         myPID.SetMode(AUTOMATIC);
-        Setpoint = 140;
-        int R = getRightSensorValue();
         int L = getLeftSensorValue();
-        Serial.print("R: ");
-        Serial.println(R);
-        Serial.print("L: ");
-        Serial.println(L);
+        int R = getRightSensorValue();
+//        Serial.print("L: ");
+//        Serial.println(L);
+//        Serial.print("R: ");
+//        Serial.println(R);
 
         digitalWrite(MOTOR1_PHASE, 1);  // forward
         digitalWrite(MOTOR2_PHASE, 1);  // forward
@@ -341,51 +340,30 @@ void loop() {
         digitalWrite(MOTOR4_PHASE, 1);  // forward
         // Todo: Relate output to motor speed
 
+        int left_spd = 200;
+        int right_spd = 200;
+        Input = -abs((L - R) - Discrepancy);
+        myPID.Compute();
+//        Serial.print("PID Input: ");
+//        Serial.println(Input);
+        Serial.print("PID output: ");
+        Serial.println(Output);
 
-        if (abs(R - L) < 100) {
-          int left_spd = 225;
-          int right_spd = 225;
-          Serial.println("Go straight\n");
-          //Same speed for 1 and 3
-          analogWrite(MOTOR1_PWM, left_spd);
-          analogWrite(MOTOR3_PWM, left_spd);
-          // Same speed for 2 and 4
-          analogWrite(MOTOR2_PWM, right_spd);
-          analogWrite(MOTOR4_PWM, right_spd);
+        Output = abs(Output);
+
+        if (Output < 30) {
+          Output = 0;
         }
-        else if (L > R) {      // use right as feedback to control motor speed
-          Serial.println("Close to the right\n");
-          int left_spd = 200;
-          int right_spd = 200;
-          Setpoint = 0;
-          Input = R - L;
-          myPID.Compute();
-          //Same speed for 1 and 3  (R)
-          analogWrite(MOTOR1_PWM, left_spd * Output / 10);
-          analogWrite(MOTOR3_PWM, left_spd * Output / 10);
-          // Same speed for 2 and 4 (L)
-          analogWrite(MOTOR2_PWM, right_spd);
-          analogWrite(MOTOR4_PWM, right_spd);
-
+        if (R > L) {
+          Output = -Output;
         }
-        else {
-          Serial.println("Close to the left");
-          int left_spd = 200;
-          int right_spd = 200;
-          Setpoint = 0;
-          Input = L - R;
-          myPID.Compute();
-          //Same speed for 1 and 3  (R)
-          analogWrite(MOTOR1_PWM, left_spd);
-          analogWrite(MOTOR3_PWM, left_spd);
-          // Same speed for 2 and 4 (L)
-          analogWrite(MOTOR2_PWM, right_spd * Output / 10);
-          analogWrite(MOTOR4_PWM, right_spd * Output / 10);
-
-
-        }
-
-
+        
+        //Same speed for 1 and 3  (R)
+        analogWrite(MOTOR1_PWM, constrain(left_spd - Output, 0, 255));
+        analogWrite(MOTOR3_PWM, constrain(left_spd - Output, 0, 255));
+        // Same speed for 2 and 4 (L)
+        analogWrite(MOTOR2_PWM, constrain(right_spd + Output, 0, 255));
+        analogWrite(MOTOR4_PWM, constrain(right_spd + Output, 0, 255));
         break;
     }
   }
