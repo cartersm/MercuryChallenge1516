@@ -1,28 +1,21 @@
 #include <PID_v1.h>
-
 #include <Max3421e.h>
 #include <Usb.h>
 #include <AndroidAccessory.h>
 #include <Servo.h>
-
 //////// IR Sensors ///
-
 int Left_Sensor = A2;
 int Left_Sensor_Reading;
-
 int Right_Sensor = A4;
 int Right_Sensor_Reading;
-
 int Front_Sensor = A3;
 int Front_Sensor_Reading;
-
-// States//
+///////// States //////
 #define STOP 0
 #define DRIVING_STRAIGHT 1
 #define TURNING 2
 #define SERPINTINE_MODE 3
-
-
+#define BACKANDSTOP 4
 ///// Motors /////////
 int MOTOR1_PWM = 7;
 int MOTOR1_PHASE = 6;
@@ -38,35 +31,26 @@ int MOTOR4_PHASE = 4;
 
 int DRAWBRIDGE1 = 45;      // drawbridge
 int DRAWBRIDGE2 = 47;
+
 int DRAWBRIDGE_ENABLE = 2;
-
 int DRAWBRIDGE_SWITCH = 48;
-
 
 int CLAW1 = 39;
 int CLAW2 = 41;
 int CLAW_ENABLE = 3;
 
-
-
-
 // boolean flags//
 boolean isLaunched = false;
 boolean isRaised = true;
 boolean isOpen = false;
-
 ///// Servos ///////////
 int Servo1 = 12;
-
-/////// Sensor Values //////
-
 ///////// PID ////////////////////////////
 double Setpoint, Discrepancy, Input, Output;
 double Kp = 0.3;
 double Ki = 0;
 double Kd = 0;          // do some changes with these parameters
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
-
 /////// Encoders Interrupts ///////////
 // Pin A is the signal, which should be attached to interrupt
 int encoder1PinA = 18;
@@ -122,13 +106,9 @@ AndroidAccessory acc(manufacturer,
                      "https://sites.google.com/site/me435spring2015",
                      "12345");
 char rxBuf[255];
-
 Servo myservo1;
-
 int Motor_Speed = 200;
-
 void setup() {
-
   pinMode(DRAWBRIDGE_ENABLE, OUTPUT);
   analogWrite(DRAWBRIDGE_ENABLE, 0);
   pinMode(MOTOR1_PWM, OUTPUT);
@@ -142,37 +122,23 @@ void setup() {
   pinMode(DRAWBRIDGE1, OUTPUT);
   pinMode(DRAWBRIDGE2, OUTPUT);
   pinMode(DRAWBRIDGE_SWITCH, INPUT_PULLUP);
-
   //  pinMode(encoder1PinB, INPUT);
   //  pinMode(encoder2PinB, INPUT);
   //  pinMode(encoder3PinB, INPUT);
   //  pinMode(encoder4PinB, INPUT);
-
-
-
   myservo1.attach(Servo1);
-
-  //  attachInterrupt(0, doEncoder1, CHANGE); // PIN 2
-  //  attachInterrupt(1, doEncoder2, CHANGE); // PIN 3
-
   attachInterrupt(2, doEncoder4, CHANGE); // PIN 21 Motor4
   attachInterrupt(3, doEncoder3, CHANGE); // PIN 20 Motor3
-
   attachInterrupt(4, doEncoder2, CHANGE); // PIN 19 Motor2
   attachInterrupt(5, doEncoder1, CHANGE); // PIN 18 Motor1
-
   Serial.begin(9600);
-  
   Setpoint = (getLeftSensorValue() + getRightSensorValue()) / 2.0;
   Discrepancy = getLeftSensorValue() - getRightSensorValue();
   Serial.print("Setpoint: ");
   Serial.println(Setpoint);
-
   Serial.print("Discrepancy: ");
   Serial.println(Discrepancy);
-
   delay (1500);
-
   acc.powerOn();
 }
 void loop() {
@@ -194,7 +160,7 @@ void loop() {
         encoder2Pos = 0;
         encoder3Pos = 0;
         encoder4Pos = 0;
-        
+
         int angleStartIndex = distanceEndIndex + 1;
         int angleEndIndex = inputString.indexOf(" ", angleStartIndex);
         String angleStr = inputString.substring(angleStartIndex, angleEndIndex);
@@ -230,7 +196,7 @@ void loop() {
         String locationStr = inputString.substring(locationStartIndex, locationEndIndex);
         String positionStr = inputString.substring(positionStartIndex, positionEndIndex);
 
-        if (launchStr.equals("true") && isLaunched == false) {
+        if (launchStr.equals("true") && isLaunched == false) {   //////***************////////
           // motor command
           analogWrite(CLAW_ENABLE, 255);
           digitalWrite(CLAW1, HIGH);     //need to change
@@ -238,7 +204,6 @@ void loop() {
           delay(50);
           isLaunched = true;
         }
-
         // drawbridge
         if (locationStr.equalsIgnoreCase("raised")) {
 
@@ -247,11 +212,7 @@ void loop() {
           digitalWrite(DRAWBRIDGE2, LOW);
           delay(2200);
           analogWrite(DRAWBRIDGE_ENABLE, 0);
-
-          //isRaised = true;
-
-
-        }
+       }
         else if (locationStr.equalsIgnoreCase("lowered")) {
           while (digitalRead(DRAWBRIDGE_SWITCH) != LOW) {
             delay(100);
@@ -259,7 +220,6 @@ void loop() {
           analogWrite(DRAWBRIDGE_ENABLE, 0);
         }
         else if (locationStr.equalsIgnoreCase("lowered") && digitalRead(DRAWBRIDGE_SWITCH) != HIGH) {
-
           digitalWrite(DRAWBRIDGE1, LOW);     //raise
           digitalWrite(DRAWBRIDGE2, HIGH);
           analogWrite(DRAWBRIDGE_ENABLE, 255);
@@ -274,33 +234,39 @@ void loop() {
           //          analogWrite(DRAWBRIDGE_ENABLE, 255);
           //          delay(1000);
           //          analogWrite(DRAWBRIDGE_ENABLE, 0);
-
           //isRaised = false;
-
         }
-        /////// gripper  //////
+        /////////////////// gripper  ///////////////////////////
         if (positionStr.equalsIgnoreCase("open")) {
-
-          myservo1.write(30);  /// find correct values
+          myservo1.write(30);  
           delay(1000);
-
         }
         else if (positionStr.equalsIgnoreCase("closed")) {
-          myservo1.write(120);  /// find correct values
+          myservo1.write(120);  
           delay(1000);
-
         }
-
       }
-
     }
-
+    if (getFrontSensorValue() < 300) {
+      CurrentState = BACKANDSTOP;
+    }
     switch (CurrentState) {
       case STOP:
-        analogWrite(MOTOR1_PWM, 0);
-        analogWrite(MOTOR2_PWM, 0);
-        analogWrite(MOTOR3_PWM, 0);
-        analogWrite(MOTOR4_PWM, 0);
+        stopAllMotors();
+        break;
+      case BACKANDSTOP:
+        stopAllMotors();
+        delay(250);
+        digitalWrite(MOTOR1_PHASE, 0);
+        digitalWrite(MOTOR2_PHASE, 0);
+        digitalWrite(MOTOR3_PHASE, 0);
+        digitalWrite(MOTOR4_PHASE, 0);
+        analogWrite(MOTOR1_PWM, 200);
+        analogWrite(MOTOR2_PWM, 200);
+        analogWrite(MOTOR3_PWM, 200);
+        analogWrite(MOTOR4_PWM, 200);
+        delay(500);
+        stopAllMotors();
         break;
       case DRIVING_STRAIGHT:
         counts1 = DistanceToCounts1(distance);
@@ -329,35 +295,23 @@ void loop() {
         myPID.SetMode(AUTOMATIC);
         int L = getLeftSensorValue();
         int R = getRightSensorValue();
-//        Serial.print("L: ");
-//        Serial.println(L);
-//        Serial.print("R: ");
-//        Serial.println(R);
-
         digitalWrite(MOTOR1_PHASE, 1);  // forward
         digitalWrite(MOTOR2_PHASE, 1);  // forward
         digitalWrite(MOTOR3_PHASE, 1);  // forward
         digitalWrite(MOTOR4_PHASE, 1);  // forward
-        // Todo: Relate output to motor speed
-
         int left_spd = 200;
         int right_spd = 200;
         Input = -abs((L - R) - Discrepancy);
         myPID.Compute();
-//        Serial.print("PID Input: ");
-//        Serial.println(Input);
         Serial.print("PID output: ");
         Serial.println(Output);
-
         Output = abs(Output);
-
         if (Output < 30) {
           Output = 0;
         }
         if (R > L) {
           Output = -Output;
         }
-        
         //Same speed for 1 and 3  (R)
         analogWrite(MOTOR1_PWM, constrain(left_spd - Output, 0, 255));
         analogWrite(MOTOR3_PWM, constrain(left_spd - Output, 0, 255));
@@ -520,4 +474,7 @@ int getLeftSensorValue() {
   return Left_Sensor_Reading;
 }
 
-
+int getFrontSensorValue() {
+  Front_Sensor_Reading = analogRead(Front_Sensor);
+  return Front_Sensor_Reading;
+}
