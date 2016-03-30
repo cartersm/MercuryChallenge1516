@@ -3,6 +3,7 @@
 #include <Usb.h>
 #include <AndroidAccessory.h>
 #include <Servo.h>
+
 //////// IR Sensors ///
 int Left_Sensor = A2;
 int Left_Sensor_Reading;
@@ -10,12 +11,14 @@ int Right_Sensor = A4;
 int Right_Sensor_Reading;
 int Front_Sensor = A3;
 int Front_Sensor_Reading;
+
 ///////// States //////
 #define STOP 0
 #define DRIVING_STRAIGHT 1
 #define TURNING 2
 #define SERPINTINE_MODE 3
 #define BACKANDSTOP 4
+
 ///// Motors /////////
 int MOTOR1_PWM = 7;
 int MOTOR1_PHASE = 6;
@@ -41,16 +44,19 @@ int CLAW_ENABLE = 3;
 
 // boolean flags//
 boolean isLaunched = false;
-boolean isRaised = true;
 boolean isOpen = false;
+boolean seesawMode = false;
 ///// Servos ///////////
 int Servo1 = 12;
+
 ///////// PID ////////////////////////////
 double Setpoint, FrontSetpoint, Discrepancy, Input, Output;
 double Kp = 0.3;
-double Ki = 0;
-double Kd = 0;          // do some changes with these parameters
+double Ki = 0.0005;
+double Kd = 0.05;          // do some changes with these parameters
+double IR_BIAS = 150.0;
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+
 /////// Encoders Interrupts ///////////
 // Pin A is the signal, which should be attached to interrupt
 int encoder1PinA = 18;
@@ -155,8 +161,15 @@ void loop() {
       rxBuf[len - 1] = '\0';
       inputString = String(rxBuf);
       Serial.println(inputString);
-      if (inputString.equals("MOTORS 0 0 false")) {
+      if (inputString.equals("MOTORS 0 0 false false")) {
         CurrentState = STOP;
+      }
+      else if (inputString.equals("MOTORS 0 0 false true")) {
+        seesawMode = true;
+      }
+      else if (inputString.equals("MOTORS 0 0 true false")) {
+        CurrentState = SERPINTINE_MODE;
+        seesawMode = false;
       }
       else if (inputString.startsWith("MOTORS")) {           // Obtain distance the robot needs to travel
         int distanceStartIndex =  inputString.indexOf(" ") + 1;
@@ -173,11 +186,7 @@ void loop() {
         String angleStr = inputString.substring(angleStartIndex, angleEndIndex);
         angle = angleStr.toInt();
 
-        if (inputString.indexOf("true") > 0) {
-          CurrentState = SERPINTINE_MODE;
-          Serial.println("Entering Serpentine Mode");
-        }
-        else if (angle != 0) {
+        if (angle != 0) {
           CurrentState = TURNING;
         }
         else if (distance != 0) {
@@ -225,7 +234,7 @@ void loop() {
           digitalWrite(DRAWBRIDGE1, LOW);
           digitalWrite(DRAWBRIDGE2, HIGH);
           analogWrite(DRAWBRIDGE_ENABLE, 255);
-          delay(2800);
+          delay(4000);
           analogWrite(DRAWBRIDGE_ENABLE, 0);
 
         }
@@ -245,12 +254,14 @@ void loop() {
     //    Serial.print("Front value: ");
     //    Serial.println(frontValue);
 
-    if (frontValue > FrontSetpoint + 200 && digitalRead(DRAWBRIDGE_SWITCH) == LOW) {
+    if (!seesawMode && 
+         frontValue > FrontSetpoint + 200 && digitalRead(DRAWBRIDGE_SWITCH) == LOW) {
       CurrentState = BACKANDSTOP;
     }
     switch (CurrentState) {
       case STOP:
         stopAllMotors();
+        seesawMode = false;
         break;
       case BACKANDSTOP:
         stopAllMotors();
@@ -299,7 +310,7 @@ void loop() {
         digitalWrite(MOTOR4_PHASE, 1);  // forward
         int left_spd = 200;
         int right_spd = 200;
-        Input = -abs((L - R) - Discrepancy);
+        Input = -abs(((L + IR_BIAS) - R) - Discrepancy);
         myPID.Compute();
         Serial.print("PID output: ");
         Serial.println(Output);
