@@ -46,7 +46,7 @@ boolean isOpen = false;
 ///// Servos ///////////
 int Servo1 = 12;
 ///////// PID ////////////////////////////
-double Setpoint, Discrepancy, Input, Output;
+double Setpoint, FrontSetpoint, Discrepancy, Input, Output;
 double Kp = 0.3;
 double Ki = 0;
 double Kd = 0;          // do some changes with these parameters
@@ -122,22 +122,29 @@ void setup() {
   pinMode(DRAWBRIDGE1, OUTPUT);
   pinMode(DRAWBRIDGE2, OUTPUT);
   pinMode(DRAWBRIDGE_SWITCH, INPUT_PULLUP);
+
   //  pinMode(encoder1PinB, INPUT);
   //  pinMode(encoder2PinB, INPUT);
   //  pinMode(encoder3PinB, INPUT);
   //  pinMode(encoder4PinB, INPUT);
   myservo1.attach(Servo1);
+
   attachInterrupt(2, doEncoder4, CHANGE); // PIN 21 Motor4
   attachInterrupt(3, doEncoder3, CHANGE); // PIN 20 Motor3
   attachInterrupt(4, doEncoder2, CHANGE); // PIN 19 Motor2
   attachInterrupt(5, doEncoder1, CHANGE); // PIN 18 Motor1
+
   Serial.begin(9600);
   Setpoint = (getLeftSensorValue() + getRightSensorValue()) / 2.0;
+  FrontSetpoint = getFrontSensorValue();
   Discrepancy = getLeftSensorValue() - getRightSensorValue();
   Serial.print("Setpoint: ");
   Serial.println(Setpoint);
+  Serial.print("Front Setpoint: ");
+  Serial.println(FrontSetpoint);
   Serial.print("Discrepancy: ");
   Serial.println(Discrepancy);
+
   delay (1500);
   acc.powerOn();
 }
@@ -205,49 +212,40 @@ void loop() {
           isLaunched = true;
         }
         // drawbridge
-        if (locationStr.equalsIgnoreCase("raised")) {
-
-          analogWrite(DRAWBRIDGE_ENABLE, 255);
-          digitalWrite(DRAWBRIDGE1, HIGH);     //raise  coming correct
+        else if (locationStr.equalsIgnoreCase("raised") && digitalRead(DRAWBRIDGE_SWITCH) == HIGH) {
+          digitalWrite(DRAWBRIDGE1, HIGH);
           digitalWrite(DRAWBRIDGE2, LOW);
-          delay(2200);
-          analogWrite(DRAWBRIDGE_ENABLE, 0);
-       }
-        else if (locationStr.equalsIgnoreCase("lowered")) {
-          while (digitalRead(DRAWBRIDGE_SWITCH) != LOW) {
+          analogWrite(DRAWBRIDGE_ENABLE, 255);
+          while (digitalRead(DRAWBRIDGE_SWITCH) == HIGH) {
             delay(100);
           }
           analogWrite(DRAWBRIDGE_ENABLE, 0);
         }
-        else if (locationStr.equalsIgnoreCase("lowered") && digitalRead(DRAWBRIDGE_SWITCH) != HIGH) {
-          digitalWrite(DRAWBRIDGE1, LOW);     //raise
+        else if (locationStr.equalsIgnoreCase("lowered") && digitalRead(DRAWBRIDGE_SWITCH) == LOW) {
+          digitalWrite(DRAWBRIDGE1, LOW);
           digitalWrite(DRAWBRIDGE2, HIGH);
           analogWrite(DRAWBRIDGE_ENABLE, 255);
-          delay(2200);
           delay(2800);
           analogWrite(DRAWBRIDGE_ENABLE, 0);
 
-          // motor command
-          //          analogWrite(DRAWBRIDGE_ENABLE, 255);
-          //          digitalWrite(DRAWBRIDGE2, HIGH);
-          //          digitalWrite(DRAWBRIDGE1, LOW);
-          //          analogWrite(DRAWBRIDGE_ENABLE, 255);
-          //          delay(1000);
-          //          analogWrite(DRAWBRIDGE_ENABLE, 0);
-          //isRaised = false;
         }
         /////////////////// gripper  ///////////////////////////
         if (positionStr.equalsIgnoreCase("open")) {
-          myservo1.write(30);  
+          myservo1.write(30);
           delay(1000);
         }
         else if (positionStr.equalsIgnoreCase("closed")) {
-          myservo1.write(120);  
+          myservo1.write(120);
           delay(1000);
         }
       }
     }
-    if (getFrontSensorValue() < 300) {
+
+    double frontValue = getFrontSensorValue();
+    //    Serial.print("Front value: ");
+    //    Serial.println(frontValue);
+
+    if (frontValue > FrontSetpoint + 200 && digitalRead(DRAWBRIDGE_SWITCH) == LOW) {
       CurrentState = BACKANDSTOP;
     }
     switch (CurrentState) {
@@ -266,7 +264,7 @@ void loop() {
         analogWrite(MOTOR3_PWM, 200);
         analogWrite(MOTOR4_PWM, 200);
         delay(500);
-        stopAllMotors();
+        CurrentState = STOP;
         break;
       case DRIVING_STRAIGHT:
         counts1 = DistanceToCounts1(distance);
