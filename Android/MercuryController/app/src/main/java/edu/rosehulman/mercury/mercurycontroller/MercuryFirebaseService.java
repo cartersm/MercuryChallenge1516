@@ -44,9 +44,9 @@ public class MercuryFirebaseService extends Service {
     public static final String EMAIL = "cartersm@rose-hulman.edu";
     public static final String PASSWORD = "RoseHulmanMercury2016";
     public static final String CONNECTION_CHANGED_MSG = "CONNECTION_CHANGED_MSG";
-    private static final String MOTOR_FORMAT_STRING = "MOTORS %d %d %b";
+    private static final String MOTOR_FORMAT_STRING = "MOTORS %d %d %b %b";
     private static final String GRIPPER_FORMAT_STRING = "GRIPPER %s %s %s";
-    private static final String LED_FORMAT_STRING = "LED %d %s";
+    private static final String LED_FORMAT_STRING = "LED %s";
     // "MERC" - non-random so we use the same notification even if the service restarts
     private static final int NOTIF_ID = 0x4d657263;
     private long mBirthTime;
@@ -332,14 +332,14 @@ public class MercuryFirebaseService extends Service {
             int distance = cmd.getDistance();
             int angle = cmd.getAngle();
             boolean isSerpentine = cmd.isSerpentine();
+            boolean isSeesaw = cmd.isSeesaw();
             long timestamp = cmd.getTimestamp();
 
             if (timestamp < mBirthTime) {
                 // ignore commands sent before we started up
-//                Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-            String command = String.format(MOTOR_FORMAT_STRING, distance, angle, isSerpentine);
+            String command = String.format(MOTOR_FORMAT_STRING, distance, angle, isSerpentine, isSeesaw);
             Log.d(MainActivity.TAG, "Sending command \"" + command + "\"");
             sendCommand(command);
         }
@@ -376,7 +376,6 @@ public class MercuryFirebaseService extends Service {
 
             if (timestamp < mBirthTime) {
                 // ignore commands sent before we started up
-//                Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
             String command = String.format(GRIPPER_FORMAT_STRING, launch, location, position.toUpperCase());
@@ -409,20 +408,17 @@ public class MercuryFirebaseService extends Service {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             LedCommand cmd = dataSnapshot.getValue(LedCommand.class);
-            int ledNumber = cmd.getLedNumber();
             String status = cmd.getStatus();
             long timestamp = cmd.getTimestamp();
 
             if (timestamp < mBirthTime) {
                 // ignore commands sent before we started up
-//                Log.d(MainActivity.TAG, "Ignoring old command");
                 return;
             }
-            String command = String.format(LED_FORMAT_STRING, ledNumber, status.toUpperCase());
+            String command = String.format(LED_FORMAT_STRING, status.toUpperCase());
             String message = "Received Firebase Command \"" + command + "\"";
             Log.d(MainActivity.TAG, message);
             postNotification(message);
-//            sendCommand(command);
             if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
                 if (status.equalsIgnoreCase("on")) {
                     // deprecated as of API21. Target version 23, but min is currently 17.

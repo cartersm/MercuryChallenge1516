@@ -12,9 +12,12 @@
                     <b>Angle</b>
                 </li>
                 <li class="col-sm-2">
-                    <b>Serpentine Mode</b>
+                    <b>Serpentine</b>
                 </li>
-                <li class="col-sm-6">
+                <li class="col-sm-2">
+                    <b>Seesaw</b>
+                </li>
+                <li class="col-sm-4">
                     <b>Timestamp</b>
                 </li>
             </ul>
@@ -28,7 +31,10 @@
                 <li class="col-sm-2" ng-class="{striped: $index % 2 == 0}">
                     {{cmd.serpentine}}
                 </li>
-                <li class="col-sm-6" ng-class="{striped: $index % 2 == 0}">
+                <li class="col-sm-2" ng-class="{striped: $index % 2 == 0}">
+                    {{cmd.seesaw || '-'}}
+                </li>
+                <li class="col-sm-4" ng-class="{striped: $index % 2 == 0}">
                     {{cmd.timestamp | date:'yyyy-MM-dd HH:mm:ss'}}
                 </li>
             </ul>
@@ -54,10 +60,10 @@
                     {{cmd.launch}}
                 </li>
                 <li class="col-sm-2" ng-class="{striped: $index % 2 == 0}">
-                    {{cmd.location}}
+                    {{cmd.location || '-'}}
                 </li>
                 <li class="col-sm-2" ng-class="{striped: $index % 2 == 0}">
-                    {{cmd.position}}
+                    {{cmd.position || '-'}}
                 </li>
                 <li class="col-sm-6" ng-class="{striped: $index % 2 == 0}">
                     {{cmd.timestamp | date:'yyyy-MM-dd HH:mm:ss'}}
@@ -67,22 +73,15 @@
         <div class="col-md-12 table-bordered text-center">
             <h4 class="lead row">LEDs</h4>
             <ul class="row list-unstyled spaced-2">
-                <li class="col-sm-3">
-                    <b>LED Number</b>
-                </li>
-                <li class="col-sm-3">
+                <li class="col-sm-6">
                     <b>Status</b>
                 </li>
                 <li class="col-sm-6">
                     <b>Timestamp</b>
                 </li>
             </ul>
-            <ul class="row list-unstyled spaced-2" ng-repeat="cmd in latestLedCommands"
-                    >
-                <li class="col-sm-3" ng-class="{striped: $index % 2 == 0}">
-                    {{cmd.ledNumber}}
-                </li>
-                <li class="col-sm-3" ng-class="{striped: $index % 2 == 0}">
+            <ul class="row list-unstyled spaced-2" ng-repeat="cmd in latestLedCommands">
+                <li class="col-sm-6" ng-class="{striped: $index % 2 == 0}">
                     {{cmd.status}}
                 </li>
                 <li class="col-sm-6" ng-class="{striped: $index % 2 == 0}">

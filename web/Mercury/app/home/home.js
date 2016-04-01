@@ -24,7 +24,8 @@ angular.module('Mercury.home', [
             $scope.motor = {
                 distance: 0,
                 angle: 0,
-                serpentine: false
+                serpentine: false,
+                seesaw: false
             };
 
             $scope.gripper = {
@@ -34,7 +35,6 @@ angular.module('Mercury.home', [
             };
 
             $scope.led = {
-                ledNumber: 0,
                 status: ''
             };
 
@@ -75,12 +75,52 @@ angular.module('Mercury.home', [
                         distance: 0,
                         angle: 0,
                         serpentine: false,
+                        seesaw: false,
                         timestamp: new Date().getTime()
                     });
                 $scope.motor = {
                     distance: 0,
                     angle: 0,
-                    serpentine: false
+                    serpentine: false,
+                    seesaw: false
+                };
+            };
+
+            $scope.sendSerpentineCommand = function () {
+                console.log('sending serpentine command');
+                firebase
+                    .child('motorCommands')
+                    .push({
+                        distance: 0,
+                        angle: 0,
+                        serpentine: true,
+                        seesaw: false,
+                        timestamp: new Date().getTime()
+                    });
+                $scope.motor = {
+                    distance: 0,
+                    angle: 0,
+                    serpentine: false,
+                    seesaw: false
+                };
+            };
+
+            $scope.sendSeesawCommand = function () {
+                console.log('sending Seesaw command');
+                firebase
+                    .child('motorCommands')
+                    .push({
+                        distance: 0,
+                        angle: 0,
+                        serpentine: false,
+                        seesaw: true,
+                        timestamp: new Date().getTime()
+                    });
+                $scope.motor = {
+                    distance: 0,
+                    angle: 0,
+                    serpentine: false,
+                    seesaw: false
                 };
             };
 
@@ -88,18 +128,21 @@ angular.module('Mercury.home', [
                 console.log('sending motor command (' +
                     cmd.distance + 'in, ' +
                     cmd.angle + ' deg, ' +
-                    cmd.serpentine + ')');
+                    cmd.serpentine + ', ' +
+                    cmd.seesaw + ')');
                 firebase.child('motorCommands')
                     .push({
                         distance: cmd.distance,
                         angle: cmd.angle,
                         serpentine: cmd.serpentine,
+                        seesaw: cmd.seesaw,
                         timestamp: new Date().getTime()
                     });
                 $scope.motor = {
                     distance: 0,
                     angle: 0,
-                    serpentine: false
+                    serpentine: false,
+                    seesaw: false
                 };
             };
 
@@ -168,15 +211,13 @@ angular.module('Mercury.home', [
             };
 
             $scope.sendLedCommand = function (cmd) {
-                console.log('sending LED command (' + cmd.ledNumber + ', ' + cmd.status + ')');
+                console.log('sending LED command (' + cmd + ')');
                 firebase.child('ledCommands')
                     .push({
-                        ledNumber: cmd.ledNumber,
-                        status: cmd.status,
+                        status: cmd,
                         timestamp: new Date().getTime()
                     });
                 $scope.led = {
-                    ledNumber: 0,
                     status: ''
                 };
             };

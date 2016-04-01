@@ -29,25 +29,20 @@
                                    id="motor_angle" name="angle" ng-model="motor.angle" required>
                         </div>
                     </div>
-                    <div class="form-group" ng-class="{ 'has-error' : motorCommandForm.serpentine.$invalid }">
-                        <label class="control-label col-sm-6" for="motor_serpentine">
-                            Serpentine Mode:
-                        </label>
-
-                        <div class="col-sm-3 col-xs-6">
-                            <input type="checkbox" id="motor_serpentine" name="serpentine"
-                                   ng-model="motor.serpentine" style="width: 20px; height: 20px;">
-                        </div>
-                    </div>
                 </form>
-
-                <div class="row text-center">
-                    <button class="btn btn-primary btn-lg btn-block" type="submit"
+                <div class="row">
+                    <button class="btn btn-primary btn-lg btn-block"
+                            ng-click="sendSerpentineCommand()">Serpentine Mode
+                    </button>
+                    <button class="btn btn-primary btn-lg btn-block"
+                            ng-click="sendSeesawCommand()">Seesaw Mode
+                    </button>
+                    <button class="btn btn-primary btn-lg btn-block btn-success" type="submit"
                             ng-click="sendMotorCommand(motor)"
                             ng-disabled="motorCommandForm.$invalid || isMotorCommandInvalid(motor)">
                         Send Motor Command
                     </button>
-                    <button class="btn btn-primary btn-danger btn-lg btn-block" type="submit"
+                    <button class="btn btn-primary btn-danger btn-lg btn-block"
                             ng-click="sendStopCommand()">
                         STOP
                     </button>
@@ -132,41 +127,13 @@
         <div class="col-md-4 table-bordered">
             <div class="has-margin">
                 <!-- LEDs -->
-                <h2 class="row text-center">LEDs</h2>
-
-                <form class="row form-horizontal" name="ledCommandForm" novalidate>
-                    <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.ledNumber.$invalid}">
-                        <label class="control-label col-sm-6" for="led_number">Led Number</label>
-
-                        <div class="col-sm-3">
-                            <input class="form-control" type="number" min="1" max="6" step="1" value="3"
-                                   id="led_number" name="ledNumber" ng-model="led.ledNumber" required>
-                        </div>
-                    </div>
-                    <div class="form-group" ng-class="{ 'has-error' : ledCommandForm.status.$invalid}">
-                        <label class="control-label col-sm-6">LED Status</label>
-
-                        <div class="btn-group col-sm-3" data-toggle="buttons">
-                            <div class="radio">
-                                <label>
-                                    <input type="radio" name="status" ng-model="led.status" value="on" required>
-                                    ON
-                                </label>
-                            </div>
-                            <div class="radio">
-                                <label>
-                                    <input type="radio" name="status" ng-model="led.status" value="off" required>
-                                    OFF
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </form>
+                <h2 class="row text-center">LED</h2>
                 <div class="row">
-                    <button class="btn btn-primary btn-lg btn-block" type="submit"
-                            ng-click="sendLedCommand(led)"
-                            ng-disabled="ledCommandForm.$invalid">
-                        Send LED Command
+                    <button class="btn btn-primary btn-lg btn-block btn-success"
+                            ng-click="sendLedCommand('on')">ON
+                    </button>
+                    <button class="btn btn-primary btn-lg btn-block btn-danger"
+                            ng-click="sendLedCommand('off')">OFF
                     </button>
                 </div>
             </div>
@@ -183,25 +150,25 @@
                     <b>Distance</b>
                 </li>
                 <li class="col-sm-6 striped">
-                    {{latestMotorCommands[0].distance}}
+                    {{latestMotorCommands[0].distance}}&nbsp
                 </li>
                 <li class="col-sm-6">
                     <b>Angle</b>
                 </li>
                 <li class="col-sm-6">
-                    {{latestMotorCommands[0].angle}}
+                    {{latestMotorCommands[0].angle}}&nbsp
                 </li>
                 <li class="col-sm-6 striped">
                     <b>Serpentine Mode</b>
                 </li>
                 <li class="col-sm-6 striped">
-                    {{latestMotorCommands[0].serpentine}}
+                    {{latestMotorCommands[0].serpentine}}&nbsp
                 </li>
                 <li class="col-sm-6">
                     <b>Timestamp</b>
                 </li>
                 <li class="col-sm-6">
-                    {{latestMotorCommands[0].timestamp | date:'yyyy-MM-dd HH:mm:ss'}}
+                    {{latestMotorCommands[0].timestamp | date:'yyyy-MM-dd HH:mm:ss'}}&nbsp
                 </li>
             </ul>
         </div>
@@ -219,13 +186,13 @@
                     <b>Location</b>
                 </li>
                 <li class="col-sm-6">
-                    {{latestGripperCommands[0].location}}
+                    {{latestGripperCommands[0].location || '-'}}
                 </li>
                 <li class="col-sm-6 striped">
                     <b>Position</b>
                 </li>
                 <li class="col-sm-6 striped">
-                    {{latestGripperCommands[0].position}}
+                    {{latestGripperCommands[0].position || '-'}}
                 </li>
                 <li class="col-sm-6">
                     <b>Timestamp</b>
@@ -239,12 +206,6 @@
         <div class="col-md-4 table-bordered text-center">
             <h2 class="row">LEDs</h2>
             <ul class="row list-unstyled spaced-2">
-                <li class="col-sm-6 striped">
-                    <b>LED Number</b>
-                </li>
-                <li class="col-sm-6 striped">
-                    {{latestLedCommands[0].ledNumber}}
-                </li>
                 <li class="col-sm-6">
                     <b>Status</b>
                 </li>

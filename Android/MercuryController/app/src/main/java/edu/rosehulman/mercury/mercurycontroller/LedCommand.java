@@ -1,7 +1,6 @@
 package edu.rosehulman.mercury.mercurycontroller;
 
 public class LedCommand {
-    private int ledNumber;
     private String status;
     private long timestamp;
 
@@ -9,14 +8,9 @@ public class LedCommand {
 
     }
 
-    public LedCommand(int ledNumber, String status, long timestamp) {
-        this.ledNumber = ledNumber;
+    public LedCommand(String status, long timestamp) {
         this.status = status;
         this.timestamp = timestamp;
-    }
-
-    public int getLedNumber() {
-        return ledNumber;
     }
 
     public String getStatus() {
