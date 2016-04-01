@@ -169,7 +169,7 @@ angular.module('Mercury.home', [
                 if (location && (location.toLowerCase() === 'lowered' || location.toLowerCase() === 'raised')) {
                     return location;
                 } else {
-                    return '';
+                    return $scope.latestGripperCommands[0].location;
                 }
             };
 
@@ -177,7 +177,7 @@ angular.module('Mercury.home', [
                 if (position && (position.toLowerCase() === 'open' || position.toLowerCase() === 'closed')) {
                     return position;
                 } else {
-                    return '';
+                    return $scope.latestGripperCommands[0].position;
                 }
             };
 
