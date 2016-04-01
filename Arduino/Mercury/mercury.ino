@@ -12,7 +12,11 @@ int Right_Sensor_Reading;
 int Front_Sensor = A3;
 int Front_Sensor_Reading;
 
+///////// LED //////////
+int LED = 49;
+
 ///////// States //////
+#define NONE -1
 #define STOP 0
 #define DRIVING_STRAIGHT 1
 #define TURNING 2
@@ -128,6 +132,7 @@ void setup() {
   pinMode(DRAWBRIDGE1, OUTPUT);
   pinMode(DRAWBRIDGE2, OUTPUT);
   pinMode(DRAWBRIDGE_SWITCH, INPUT_PULLUP);
+  pinMode(LED, OUTPUT);
 
   //  pinMode(encoder1PinB, INPUT);
   //  pinMode(encoder2PinB, INPUT);
@@ -166,6 +171,7 @@ void loop() {
       }
       else if (inputString.equals("MOTORS 0 0 false true")) {
         seesawMode = true;
+        CurrentState = NONE;
       }
       else if (inputString.equals("MOTORS 0 0 true false")) {
         CurrentState = SERPINTINE_MODE;
@@ -212,13 +218,13 @@ void loop() {
         String locationStr = inputString.substring(locationStartIndex, locationEndIndex);
         String positionStr = inputString.substring(positionStartIndex, positionEndIndex);
 
-        if (launchStr.equals("true") && isLaunched == false) {   //////***************////////
+        if (launchStr.equals("true")) {   //////***************////////
           // motor command
           analogWrite(CLAW_ENABLE, 255);
-          digitalWrite(CLAW1, HIGH);     //need to change
-          digitalWrite(CLAW2, LOW);
-          delay(50);
-          isLaunched = true;
+          digitalWrite(CLAW1, LOW);     //need to change
+          digitalWrite(CLAW2, HIGH);
+          delay(5000);
+          analogWrite(CLAW_ENABLE, 0);
         }
         // drawbridge
         else if (locationStr.equalsIgnoreCase("raised") && digitalRead(DRAWBRIDGE_SWITCH) == HIGH) {
@@ -234,7 +240,7 @@ void loop() {
           digitalWrite(DRAWBRIDGE1, LOW);
           digitalWrite(DRAWBRIDGE2, HIGH);
           analogWrite(DRAWBRIDGE_ENABLE, 255);
-          delay(4000);
+          delay(3800);
           analogWrite(DRAWBRIDGE_ENABLE, 0);
 
         }
@@ -247,6 +253,14 @@ void loop() {
           myservo1.write(120);
           delay(1000);
         }
+      } else if (inputString.startsWith("LED")) {
+        int startIndex = inputString.indexOf(" ") + 1;
+        String statusString = inputString.substring(startIndex);
+        if (statusString.equalsIgnoreCase("on")) {
+          digitalWrite(LED, HIGH);
+        } else {
+          digitalWrite(LED, LOW);
+        }
       }
     }
 
@@ -254,8 +268,8 @@ void loop() {
     //    Serial.print("Front value: ");
     //    Serial.println(frontValue);
 
-    if (!seesawMode && 
-         frontValue > FrontSetpoint + 200 && digitalRead(DRAWBRIDGE_SWITCH) == LOW) {
+    if (!seesawMode &&
+        frontValue > FrontSetpoint + 200 && digitalRead(DRAWBRIDGE_SWITCH) == LOW) {
       CurrentState = BACKANDSTOP;
     }
     switch (CurrentState) {
@@ -299,6 +313,8 @@ void loop() {
         countsangle3 = angleToCounts3(angle);
         countsangle4 = angleToCounts4(angle);
         turnRobot(angle);
+        break;
+      case NONE:
         break;
       case SERPINTINE_MODE:
         myPID.SetMode(AUTOMATIC);

@@ -9,7 +9,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
@@ -419,21 +418,8 @@ public class MercuryFirebaseService extends Service {
             String message = "Received Firebase Command \"" + command + "\"";
             Log.d(MainActivity.TAG, message);
             postNotification(message);
-            if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)) {
-                if (status.equalsIgnoreCase("on")) {
-                    // deprecated as of API21. Target version 23, but min is currently 17.
-                    mCamera = Camera.open();
-                    Camera.Parameters params = mCamera.getParameters();
-                    params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                    mCamera.setParameters(params);
-                    mCamera.startPreview();
-                } else {
-                    if (mCamera != null) {
-                        mCamera.stopPreview();
-                        mCamera.release();
-                    }
-                }
-            }
+            sendCommand(command);
+
         }
 
         @Override
