@@ -12,7 +12,8 @@
     "bootstrap": "~3.3.6",
     "firebase": "~2.3.2",
     "html5-boilerplate": "~5.2.0",
-    "jquery": "~2.1.4"
+    "jquery": "~2.1.4",
+    "angular-hotkeys": "chieffancypants/angular-hotkeys#~1.7.0"
   },
   "main": "app.js",
   "moduleType": [],
