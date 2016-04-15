@@ -14,7 +14,8 @@ angular.module('Mercury.home', [
         '$firebaseArray',
         '$location',
         'Auth',
-        function ($scope, $firebaseAuth, $firebaseArray, $location, Auth) {
+        'hotkeys',
+        function ($scope, $firebaseAuth, $firebaseArray, $location, Auth, hotkeys) {
             Auth.checkAuth(function () {
                 if (!Auth.hasAuth()) {
                     $location.path('/login');
@@ -146,6 +147,12 @@ angular.module('Mercury.home', [
                 };
             };
 
+            $scope.sendMotorCommandIfValid = function (cmd) {
+                if (!$scope.isMotorCommandInvalid(cmd)) {
+                    $scope.sendMotorCommand(cmd);
+                }
+            }
+
             $scope.sendGripperCommand = function (cmd) {
                 console.log('sending gripper command (' +
                     cmd.launch + ', ' +
@@ -221,4 +228,124 @@ angular.module('Mercury.home', [
                     status: ''
                 };
             };
+
+            // Hotkeys
+            hotkeys.bindTo($scope)
+                // forward
+                .add({
+                    combo: 'up',
+                    description: 'Nudge forward (1 inch)',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 1,
+                            angle: 0,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // backward
+                .add({
+                    combo: 'down',
+                    description: 'Nudge backward (1 inch)',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: -1,
+                            angle: 0,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // left
+                .add({
+                    combo: 'left',
+                    description: 'Nudge left (5 degrees)',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 0,
+                            angle: 5,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // right
+                .add({
+                    combo: 'right',
+                    description: 'Nudge right (5 degrees)',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 0,
+                            angle: -5,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // stop
+                .add({
+                    combo: 's',
+                    description: 'E-STOP',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 0,
+                            angle: 0,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // 1 foot
+                .add({
+                    combo: '1',
+                    description: 'Forward 1 foot',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 12,
+                            angle: 0,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // 6 feet
+                .add({
+                    combo: '6',
+                    description: 'Forward 6 feet',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 72,
+                            angle: 0,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // 45 feet
+                .add({
+                    combo: '4',
+                    description: 'Forward 45 feet',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 540,
+                            angle: 0,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // Turn 180
+                .add({
+                    combo: 't',
+                    description: 'Turn 180 degrees',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 0,
+                            angle: 180,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
         }]);

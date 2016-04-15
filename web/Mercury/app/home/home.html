@@ -1,6 +1,7 @@
 <div class="container my-container">
     <div class="row">
         <h2>Command Center</h2>
+        <h4 class="text-info">To show hotkeys, press Shift+?</h4>
 
         <div class="col-md-4 table-bordered text-center">
             <div class="has-margin">
@@ -15,18 +16,20 @@
 
                         <div class="col-sm-3">
                             <input class="form-control" type="number" value="0" min="-540" max="540" step="6"
-                                   id="motor_distance" name="distance" ng-model="motor.distance" required autofocus>
+                                   id="motor_distance" name="distance" ng-model="motor.distance" required autofocus
+                                   ng-keypress="$event.keyCode=='13' && sendMotorCommandIfValid(motor)">
                         </div>
                     </div>
                     <div class="form-group"
                          ng-class="{ 'has-error' : motorCommandForm.angle.$invalid }">
                         <label class="control-label col-sm-6" for="motor_angle">
-                            Angle (degrees):
+                            Angle (degrees) (Left positive):
                         </label>
 
                         <div class="col-sm-3">
                             <input class="form-control" type="number" value="0" min="-180" max="180" step="10"
-                                   id="motor_angle" name="angle" ng-model="motor.angle" required>
+                                   id="motor_angle" name="angle" ng-model="motor.angle" required
+                                   ng-keypress="$event.keyCode=='13' && sendMotorCommandIfValid(motor)">
                         </div>
                     </div>
                 </form>
@@ -206,16 +209,16 @@
         <div class="col-md-4 table-bordered text-center">
             <h2 class="row">LEDs</h2>
             <ul class="row list-unstyled spaced-2">
-                <li class="col-sm-6">
+                <li class="col-sm-6 striped">
                     <b>Status</b>
                 </li>
-                <li class="col-sm-6">
+                <li class="col-sm-6 striped">
                     {{latestLedCommands[0].status}}
                 </li>
-                <li class="col-sm-6 striped">
+                <li class="col-sm-6">
                     <b>Timestamp</b>
                 </li>
-                <li class="col-sm-6 striped">
+                <li class="col-sm-6">
                     {{latestLedCommands[0].timestamp | date:'yyyy-MM-dd HH:mm:ss'}}
                 </li>
             </ul>
