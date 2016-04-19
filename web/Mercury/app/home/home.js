@@ -348,4 +348,30 @@ angular.module('Mercury.home', [
                         });
                     }
                 })
+                // Turn Left 90
+                .add({
+                    combo: 'shift+left',
+                    description: 'Turn Left 90 degrees',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 0,
+                            angle: 90,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
+                // Turn Right 90
+                .add({
+                    combo: 'shift+right',
+                    description: 'Turn Right 90 degrees',
+                    callback: function () {
+                        $scope.sendMotorCommand({
+                            distance: 0,
+                            angle: -90,
+                            serpentine: false,
+                            seesaw: false
+                        });
+                    }
+                })
         }]);
